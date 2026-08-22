@@ -16,6 +16,9 @@ def generate_order_id():
 def add_similarity_data(order_id,similarity,status):
     conn=create_database()
     cursor=conn.cursor()
+    results=cursor.execute("""SELECT * FROM ORDERS WHERE ORDER_ID=?""",(order_id)).fetchone()
+    if results[0] is not None:
+        return
     cursor.execute("""INSERT INTO Orders(Order_ID, Similarity_Score, Status) values(?,?,?)""",(order_id,similarity,status)) 
     conn.commit()
     return
