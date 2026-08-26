@@ -57,6 +57,21 @@ def front_vlm(state:MainState):
                     ,"similarity_score":state["front_score"]}
      Sub_Comparator.invoke(intial_state)
      return{"front_review":initial_state["vlm_review"]}
+def back_vlm(state:MainState):
+     delivery_path:os.path.join("delivery_images/back",state["order_id"]+".png")
+     return_path:os.path.join("return_images/back",state["order_id"]+".png")
+     initial_state:{"delivery_path":delivery_path,"return_path":return_path,"vlm_review":None,
+                    "similarity_score":state["back_score"]}
+     Sub_Comparator.invoke(initial_state)
+     return{"back_review":initial_state["vlm_review"]}
+def side_vlm(state:MainState):
+     delivery_path:os.path.join("delivery_images/side",state["order_id"]+".png")
+     return_path:os.path.join("return_images/side",state["order_id"]+".png")
+     initial_state:{"delivery_path":delivery_path,"return_path":return_path,"vlm_review":None,
+                    "similarity_score":state["side_score"]}
+     Sub_Comparator.invoke(initial_state)
+     return{"back_review":initial_state["vlm_review"]}
+
 
 
 
