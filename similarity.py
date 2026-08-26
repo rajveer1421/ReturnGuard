@@ -54,12 +54,24 @@ def submit_return_images():
     back_image.save(os.path.join('return_images/back',order_id+".png"))
     side_image.save(os.path.join('return_images/side',order_id+".png"))
     Response("Processing the Return Images")
-    results=MainAgent.invoke()
-    status=fetch_status(order_id,similarity,status)
-    return render_template("results.html",
-                           results=results,
-                           status=status,
-                           order_id=order_id) # show results and status 
+    intial_state={"order_id":order_id,
+        "front_score": None,
+        "back_score": None,
+        "side_score": None,
+        "avg_score": None,
+        "front_review": None,
+        "back_review": None,
+        "side_review": None,
+        "main_review": None,
+        "status": None}
+    results=MainAgent.invoke(intial_state)
+    if status=="PASSED TO VLM FOR REVIEW":
+        if "VLM Accepted" in results["main_review"]:
+            status="VLM Accepted"
+        elif "Human Review" in results["main_review"]:
+            status="Human Review"
+        else:
+            status="Rejected"
 
 if __name__=="__main__":
     app.run(debug=True)

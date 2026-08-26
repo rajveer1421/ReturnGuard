@@ -213,7 +213,9 @@ def main_llm(state: MainState):
             content="""
 You are the final decision-making reviewer for an e-commerce return
 verification system.
-
+You need to start with your decision write VLM Accepted for Accepted, 
+and Human Review for passing it to Human Review,
+and Rejected for Rejection
 You will receive three independent VLM reviews:
 1. Front-view review
 2. Back-view review
