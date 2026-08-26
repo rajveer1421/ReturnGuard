@@ -9,6 +9,7 @@ from langchain_google_gemini import ChatGoogleGenerativeAI
 from vlm import Sub_Comparator
 from langgraph.graph import StateGraph,START,END
 from typing import TypedDict
+from MainLanggraph import MainAgent
 app=Flask(__name__)
 def remove_background(img):
     img=Image.open(img)
@@ -53,7 +54,7 @@ def submit_return_images():
     back_image.save(os.path.join('return_images/back',order_id+".png"))
     side_image.save(os.path.join('return_images/side',order_id+".png"))
     Response("Processing the Return Images")
-    results=compare_images(order_id)
+    results=MainAgent.invoke()
     status=fetch_status(order_id,similarity,status)
     return render_template("results.html",
                            results=results,

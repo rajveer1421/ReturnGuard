@@ -1,18 +1,38 @@
 from langchain_google_gemini import ChatGoogleGenerativeAI
-from langgraph.graph import StateGraph, START,END
-from PIL import Image
+from langgraph.graph import StateGraph, START, END
 from typing import TypedDict
-VLM=ChatGoogleGenerativeAI()
-class VLMState(TypedDict):
-    delivery_path:str
-    return_path:str
-    vlm_review:str
-    similarity_score:float
 from PIL import Image
 from langchain_core.messages import SystemMessage, HumanMessage
+import base64
+import mimetypes
 
-def review(state:VLMState):
+VLM = ChatGoogleGenerativeAI()
+
+
+class VLMState(TypedDict):
+    delivery_path: str
+    return_path: str
+    vlm_review: str
+    similarity_score: float
+
+
+def image_to_data_url(path):
+
+    mime_type, _ = mimetypes.guess_type(path)
+
+    with open(path, "rb") as f:
+        image_data = base64.b64encode(f.read()).decode("utf-8")
+
+    return f"data:{mime_type};base64,{image_data}"
+
+
+def review(state: VLMState):
+
+    delivery_image = image_to_data_url(state["delivery_path"])
+    return_image = image_to_data_url(state["return_path"])
+
     messages = [
+
         SystemMessage(
             content=f"""
 You will be given two images of the same product:
@@ -28,6 +48,14 @@ a different product instead of the product that was originally delivered.
 
 The similarity score produced by the DINOv2 model using cosine similarity is:
 {state["similarity_score"]}
+
+Your primary objective is HIGH PRECISION.
+
+A false positive is particularly costly because it may incorrectly
+reject a legitimate customer return and damage customer trust.
+
+Therefore, DO NOT conclude that the returned product is different
+unless there is convincing product-specific evidence.
 
 Use both the visual comparison and the similarity score.
 
@@ -55,6 +83,7 @@ Important considerations:
 Give the final conclusion in simple language with a clear justification.
 """
         ),
+
         HumanMessage(
             content=[
                 {
@@ -64,7 +93,7 @@ Give the final conclusion in simple language with a clear justification.
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": state["delivery_path"]
+                        "url": delivery_image
                     }
                 },
                 {
@@ -74,7 +103,7 @@ Give the final conclusion in simple language with a clear justification.
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": state["return_path"]
+                        "url": return_image
                     }
                 }
             ]
@@ -83,9 +112,13 @@ Give the final conclusion in simple language with a clear justification.
 
     response = VLM.invoke(messages)
 
-    return {"vlm_review":response.content}
-Sub_Comparator_builder=StateGraph(VLMState)
+    return {
+        "vlm_review": response.content
+    }
+
+
+Sub_Comparator_builder = StateGraph(VLMState)
 Sub_Comparator_builder.add_node("reviewer",review)
-Sub_Comparator_builder.add_edge(START,"review")
-Sub_Comparator_builder.add_edge("review","END")
-Sub_Comparator=Sub_Comparator_builder.compile()
+Sub_Comparator_builder.add_edge(START,"reviewer")
+Sub_Comparator_builder.add_edge("reviewer",END)
+Sub_Comparator = Sub_Comparator_builder.compile()
