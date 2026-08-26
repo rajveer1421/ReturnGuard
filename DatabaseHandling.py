@@ -22,3 +22,8 @@ def add_similarity_data(order_id,similarity,status):
     cursor.execute("""INSERT INTO Orders(Order_ID, Similarity_Score, Status) values(?,?,?)""",(order_id,similarity,status)) 
     conn.commit()
     return
+def fetch_status(order_id):
+    conn=create_database()
+    cursor=conn.cursor()
+    results=cursor.execute(""" Select Status from Orders where Order_ID==order_id """).fetchone()
+    return results[0]

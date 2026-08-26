@@ -5,10 +5,11 @@ from EmbeddingSimilarity import final_embedder
 from DatabaseHandling import generate_order_id,add_similarity_data
 from PIL import Image 
 from torch import nn
+from langchain_google_gemini import ChatGoogleGenerativeAI
+from vlm import Sub_Comparator
+from langgraph.graph import StateGraph,START,END
+from typing import TypedDict
 app=Flask(__name__)
-def similarity_check(e1,e2):
-    similarity=nn.functional.cosine_similarity(e1,e2,dim=0)
-    return similarity.item()
 def remove_background(img):
     img=Image.open(img)
     blacked=remove(img)
@@ -53,29 +54,11 @@ def submit_return_images():
     side_image.save(os.path.join('return_images/side',order_id+".png"))
     Response("Processing the Return Images")
     results=compare_images(order_id)
-    if results>0.8:
-        status="RETURN_ACCEPTED"
-    elif results>0.4:
-        status="PASSED TO VLM FOR REVIEW"
-    else:
-        status="RETURN_REJECTED"
-    add_similarity_data(order_id,results,status)
+    status=fetch_status(order_id,similarity,status)
     return render_template("results.html",
                            results=results,
                            status=status,
                            order_id=order_id) # show results and status 
-def compare_images(order_id):
-    Response("Comparing the Images")
-    front_emb=final_embedder(Image.open(os.path.join('delivery_images/front',order_id+".png")))
-    back_emb=final_embedder(Image.open(os.path.join('delivery_images/back',order_id+".png")))
-    side_emb=final_embedder(Image.open(os.path.join('delivery_images/side',order_id+".png")))
-    front_emb1=final_embedder(Image.open(os.path.join('return_images/front',order_id+".png")))
-    back_emb1=final_embedder(Image.open(os.path.join('return_images/back',order_id+".png")))
-    side_emb1=final_embedder(Image.open(os.path.join('return_images/side',order_id+".png")))
-    front_sim=similarity_check(front_emb,front_emb1)
-    back_sim=similarity_check(back_emb,back_emb1)
-    side_sim=similarity_check(side_emb,side_emb1)
-    return (front_sim+back_sim+side_sim)/3.0
 
 if __name__=="__main__":
     app.run(debug=True)
