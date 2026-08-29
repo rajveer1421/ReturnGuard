@@ -27,3 +27,9 @@ def fetch_status(order_id):
     cursor=conn.cursor()
     results=cursor.execute(""" Select Status from Orders where Order_ID==order_id """).fetchone()
     return results[0]
+def add_review_data(order_id,front_score,back_score,side_score,avg_score,front_review,back_review,side_review,main_review,status):
+    conn=create_database()
+    cursor=conn.cursor()
+    cursor.execute("""UPDATE Orders SET front_score=?,back_score=?,side_score=?,avg_score=?,front_review=?,back_review=?,side_review=?,main_review=?,status=? WHERE Order_ID=?""",(order_id,front_score,back_score,side_score,avg_score,front_review,back_review,side_review,main_review,status))
+    conn.commit()
+    return

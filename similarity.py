@@ -10,6 +10,7 @@ from vlm import Sub_Comparator
 from langgraph.graph import StateGraph,START,END
 from typing import TypedDict
 from MainLanggraph import MainAgent
+from DatabaseHandling import add_review_data
 app=Flask(__name__)
 def remove_background(img):
     img=Image.open(img)
@@ -72,6 +73,7 @@ def submit_return_images():
             status="Human Review"
         else:
             status="Rejected"
+    add_review_data(order_id,results["front_score"],results["back_score"],results["side_score"],results["avg_score"],results["front_review"],results["back_review"],results["side_review"],results["main_review"],results["status"])
 
 if __name__=="__main__":
     app.run(debug=True)
