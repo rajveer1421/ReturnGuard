@@ -65,7 +65,7 @@ class ParticleSystem {
 
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(99, 102, 241, ${p.opacity})`;
+            this.ctx.fillStyle = `rgba(37, 99, 235, ${p.opacity})`;
             this.ctx.fill();
         });
 
@@ -79,7 +79,7 @@ class ParticleSystem {
                     this.ctx.beginPath();
                     this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
                     this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-                    this.ctx.strokeStyle = `rgba(99, 102, 241, ${0.06 * (1 - dist / 140)})`;
+                    this.ctx.strokeStyle = `rgba(37, 99, 235, ${0.05 * (1 - dist / 140)})`;
                     this.ctx.lineWidth = 0.5;
                     this.ctx.stroke();
                 }
@@ -122,8 +122,8 @@ function initNavigation() {
     });
 
     // Mobile menu toggle
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const mobileNav = document.querySelector('.mobile-nav');
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileNav = document.getElementById('mobile-nav');
     if (mobileBtn && mobileNav) {
         mobileBtn.addEventListener('click', () => {
             mobileNav.classList.toggle('open');
@@ -367,7 +367,7 @@ function initReturnForm() {
     });
 }
 
-// ── Display Results ──
+// ── Display Results — triggers the gold-sweep verdict reveal ──
 function displayResults(data) {
     const section = document.getElementById('results');
     section.style.display = 'block';
@@ -382,30 +382,51 @@ function displayResults(data) {
     });
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
-    // Set order ID
+    // Order ID
     document.getElementById('result-order-id').textContent = data.order_id;
 
-    // Set verdict badge
-    const verdictEl = document.getElementById('result-verdict');
+    // ── Verdict card: map status → classes and copy ──
+    const card = document.getElementById('verdict-card');
+    const verdictText = document.getElementById('verdict-text');
+    const verdictSub = document.getElementById('verdict-sub');
     const status = data.status || 'Pending';
-    verdictEl.textContent = status;
-    verdictEl.className = 'verdict-badge';
 
-    const verdictDot = document.createElement('span');
-    verdictDot.className = 'verdict-dot';
-    verdictEl.prepend(verdictDot);
+    // Clear previous state
+    card.className = 'verdict-card';
+
+    let verdictLabel = status;
+    let verdictClass = '';
 
     if (status === 'RETURN_ACCEPTED') {
-        verdictEl.classList.add('accepted');
+        verdictLabel = 'Return Accepted';
+        verdictClass = 'v-accepted';
+        verdictSub.textContent = 'Embedding similarity exceeded threshold — no VLM review required.';
     } else if (status === 'VLM Accepted') {
-        verdictEl.classList.add('vlm-accepted');
+        verdictLabel = 'Return Accepted';
+        verdictClass = 'v-vlm';
+        verdictSub.textContent = 'VLM review completed — all agents confirm the product matches.';
     } else if (status === 'Human Review') {
-        verdictEl.classList.add('review');
+        verdictLabel = 'Requires Human Review';
+        verdictClass = 'v-review';
+        verdictSub.textContent = 'Evidence is ambiguous. A human reviewer should inspect this return.';
     } else if (status === 'Rejected') {
-        verdictEl.classList.add('rejected');
+        verdictLabel = 'Return Rejected';
+        verdictClass = 'v-rejected';
+        verdictSub.textContent = 'Convincing product-specific discrepancies identified by multiple VLM agents.';
     } else {
-        verdictEl.classList.add('review');
+        verdictLabel = status;
+        verdictClass = 'v-review';
     }
+
+    verdictText.textContent = verdictLabel;
+
+    // Fire the signature animation: scan line sweeps, then text stamps in
+    requestAnimationFrame(() => {
+        card.classList.add(verdictClass, 'scanning');
+        setTimeout(() => {
+            card.classList.add('revealed');
+        }, 200);
+    });
 
     // Score gauge
     const avgScore = data.avg_score || 0;
@@ -417,10 +438,10 @@ function displayResults(data) {
     document.getElementById('side-score').textContent = formatScore(data.side_score);
 
     // VLM Reviews
-    setReview('front-review', data.front_review);
-    setReview('back-review', data.back_review);
-    setReview('side-review', data.side_review);
-    setReview('main-review', data.main_review);
+    setReview('front-review', data.front_review, '↳ FRONT VIEW');
+    setReview('back-review', data.back_review, '↳ BACK VIEW');
+    setReview('side-review', data.side_review, '↳ SIDE VIEW');
+    setReview('main-review', data.main_review, '⚖ Final Judge Decision');
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -431,10 +452,14 @@ function formatScore(score) {
     return (score * 100).toFixed(1) + '%';
 }
 
-function setReview(elementId, text) {
+function setReview(elementId, text, headingText) {
     const el = document.getElementById(elementId);
     if (!el) return;
     const pre = el.querySelector('pre');
+    if (headingText) {
+        const h3 = el.querySelector('h3');
+        if (h3) h3.textContent = headingText;
+    }
     if (pre) {
         pre.textContent = text || 'No review available (similarity score was high enough to skip VLM).';
     }
@@ -446,14 +471,14 @@ function animateGauge(score) {
     const number = document.getElementById('gauge-number');
     if (!circle || !number) return;
 
-    const circumference = 2 * Math.PI * 62;
+    const circumference = 2 * Math.PI * 60;
     circle.style.strokeDasharray = circumference;
     circle.style.strokeDashoffset = circumference;
 
-    // Determine color
-    let color = '#ef4444'; // red
-    if (score > 0.8) color = '#10b981'; // green
-    else if (score > 0.5) color = '#f59e0b'; // amber
+    // Color thresholds match 0.60 accept threshold
+    let color = '#DC2626'; // crimson
+    if (score >= 0.75) color = '#10B981';   // emerald
+    else if (score >= 0.55) color = '#D97706'; // amber
 
     circle.style.stroke = color;
     number.style.color = color;
@@ -463,16 +488,16 @@ function animateGauge(score) {
             const offset = circumference - (score * circumference);
             circle.style.strokeDashoffset = offset;
 
-            // Animate number
+            // Animate number counter
             let current = 0;
             const target = score * 100;
-            const duration = 1500;
+            const duration = 1400;
             const startTime = performance.now();
 
             function updateNumber(now) {
                 const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
                 current = eased * target;
                 number.textContent = current.toFixed(1) + '%';
                 if (progress < 1) requestAnimationFrame(updateNumber);
