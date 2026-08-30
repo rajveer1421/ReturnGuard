@@ -1,16 +1,18 @@
 from torch import nn
-from langchain_google_gemini import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from vlm import Sub_Comparator
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict
 from flask import Response
 from DatabaseHandling import generate_order_id, add_similarity_data
 import os
+import numpy as np
 from PIL import Image
 from EmbeddingSimilarity import final_embedder
 from langchain_core.messages import HumanMessage, SystemMessage
 
-final_judge = ChatGoogleGenerativeAI()
+final_judge = ChatGoogleGenerativeAI(model="gemini-2.5-flash"
+)
 
 class MainState(TypedDict):
     order_id: int
@@ -28,6 +30,25 @@ class MainState(TypedDict):
 def similarity_check(e1, e2):
     similarity = nn.functional.cosine_similarity(e1, e2, dim=0)
     return similarity.item()
+
+
+def image_sharpness(image_path: str) -> float:
+    """Compute image sharpness via Laplacian variance.
+    Sharp images have high variance; blurry images score near zero.
+    Used to quality-weight the per-view similarity scores so that a
+    single blurry capture doesn't unfairly drag the average down."""
+    img = Image.open(image_path).convert("L")  # grayscale
+    arr = np.array(img, dtype=np.float32)
+    # Laplacian kernel convolution via finite differences
+    lap = (
+        np.roll(arr, -1, axis=0) + np.roll(arr, 1, axis=0)
+        + np.roll(arr, -1, axis=1) + np.roll(arr, 1, axis=1)
+        - 4 * arr
+    )
+    variance = float(lap.var())
+    # Clamp to a minimum of 1.0 so extremely blurry images still get
+    # a small (non-zero) weight rather than being completely ignored.
+    return max(variance, 1.0)
 
 
 def compare_images(state: MainState):
@@ -91,7 +112,19 @@ def compare_images(state: MainState):
     back_sim = similarity_check(back_emb, back_emb1)
     side_sim = similarity_check(side_emb, side_emb1)
 
-    avg_sim = (front_sim + back_sim + side_sim) / 3.0
+    # Quality-weighted average: blurry images contribute less.
+    # A blurry side image (Laplacian variance ~0) previously caused
+    # the entire return to go to VLM review even when front/back were fine.
+    order = str(state["order_id"])
+    q_front = image_sharpness(os.path.join("return_images/front", order + ".png"))
+    q_back  = image_sharpness(os.path.join("return_images/back",  order + ".png"))
+    q_side  = image_sharpness(os.path.join("return_images/side",  order + ".png"))
+    total_q = q_front + q_back + q_side
+    avg_sim = (
+        front_sim * (q_front / total_q)
+        + back_sim  * (q_back  / total_q)
+        + side_sim  * (q_side  / total_q)
+    )
 
     return {
         "front_score": front_sim,
@@ -104,7 +137,7 @@ def compare_images(state: MainState):
 def vlm_router(state: MainState):
     status: str
 
-    if state["avg_score"] > 0.8:
+    if state["avg_score"] > 0.60:
         status = "RETURN_ACCEPTED"
     else:
         status = "PASSED TO VLM FOR REVIEW"

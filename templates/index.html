@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReturnGuard — AI-Powered Return Fraud Detection</title>
+    <meta name="description" content="ReturnGuard is a multi-agent AI pipeline that detects e-commerce return fraud using visual similarity, DINOv2 embeddings, and vision-language models.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+
+    <!-- Particle Background -->
+    <canvas id="particle-canvas"></canvas>
+    <div class="ambient-gradient"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="brand" onclick="backToDashboard()">
+            <div class="shield-icon">🛡️</div>
+            <span>Return<span class="highlight">Guard</span></span>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-tab" data-tab="register">Register Delivery</button>
+            <button class="nav-tab" data-tab="return">Process Return</button>
+            <button class="nav-tab" data-tab="lookup">Order Lookup</button>
+            <button class="nav-tab" data-tab="how">How It Works</button>
+        </div>
+
+        <div class="nav-status">
+            <span class="pulse-dot"></span>
+            System Active
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="mobile-menu-btn">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav -->
+    <div class="mobile-nav">
+        <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="nav-tab" data-tab="register">Register Delivery</button>
+        <button class="nav-tab" data-tab="return">Process Return</button>
+        <button class="nav-tab" data-tab="lookup">Order Lookup</button>
+        <button class="nav-tab" data-tab="how">How It Works</button>
+    </div>
+
+    <!-- Flash Notifications -->
+    <div id="success-flash" class="success-flash">
+        ✅ <span class="flash-text"></span>
+    </div>
+    <div id="error-flash" class="error-flash">
+        ❌ <span class="flash-text"></span>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processing-overlay" class="processing-overlay">
+        <div class="processing-spinner"></div>
+        <div class="processing-text">Processing...</div>
+        <div class="processing-sub"></div>
+        <div class="pipeline-progress">
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">Upload</span>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">BG Remove</span>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">Embedding</span>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">Similarity</span>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">VLM Review</span>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step">
+                <div class="step-dot"></div>
+                <span class="step-label">Verdict</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- ═══════════════ DASHBOARD ═══════════════ -->
+        <section id="dashboard" class="page-section active" style="display:block; opacity:1; transform:none;">
+
+            <div class="hero-section">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    AGENTIC AI • FRAUD DETECTION • COMPUTER VISION
+                </div>
+
+                <h1 class="hero-title">
+                    Detect Return Fraud with<br>
+                    <span class="gradient-text">Multi-Agent AI</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    ReturnGuard captures delivery evidence, compares it against returned products using 
+                    DINOv2 embeddings and vision-language models, and delivers explainable, 
+                    confidence-scored fraud verdicts in real time.
+                </p>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Orders Processed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-accepted">0</div>
+                        <div class="stat-label">Returns Accepted</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-flagged">0</div>
+                        <div class="stat-label">Flagged / Rejected</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-avg">—</div>
+                        <div class="stat-label">Avg Similarity</div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Visualization -->
+                <div class="pipeline-visual">
+                    <div class="pipeline-node">
+                        <div class="node-icon delivery">📦</div>
+                        <span class="node-label">Delivery</span>
+                    </div>
+                    <span class="pipeline-arrow">→</span>
+                    <div class="pipeline-node">
+                        <div class="node-icon embed">🧬</div>
+                        <span class="node-label">DINOv2</span>
+                    </div>
+                    <span class="pipeline-arrow">→</span>
+                    <div class="pipeline-node">
+                        <div class="node-icon embed">📐</div>
+                        <span class="node-label">Similarity</span>
+                    </div>
+                    <span class="pipeline-arrow">→</span>
+                    <div class="pipeline-node">
+                        <div class="node-icon vlm">👁️</div>
+                        <span class="node-label">VLM Review</span>
+                    </div>
+                    <span class="pipeline-arrow">→</span>
+                    <div class="pipeline-node">
+                        <div class="node-icon judge">⚖️</div>
+                        <span class="node-label">Final Judge</span>
+                    </div>
+                    <span class="pipeline-arrow">→</span>
+                    <div class="pipeline-node">
+                        <div class="node-icon verdict">✅</div>
+                        <span class="node-label">Verdict</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders Table -->
+            <div class="glass-card animate-in" style="margin: 0 5% 40px; max-width: 1280px;">
+                <div class="card-header">
+                    <div class="icon-box">📋</div>
+                    <div>
+                        <h2>Recent Orders</h2>
+                        <p>Latest return verification results</p>
+                    </div>
+                </div>
+
+                <div id="orders-empty" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>No orders yet. Register a delivery to get started.</p>
+                </div>
+
+                <table class="order-table" id="orders-table" style="display: table;">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Similarity</th>
+                            <th>Avg Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- ═══════════════ REGISTER DELIVERY ═══════════════ -->
+        <section id="register" class="page-section">
+            <div style="max-width: 860px; margin: 0 auto;">
+
+                <div class="glass-card animate-in">
+                    <div class="card-header">
+                        <div class="icon-box">📦</div>
+                        <div>
+                            <h2>Register Delivery Evidence</h2>
+                            <p>Upload front, back, and side photos of the product at delivery time</p>
+                        </div>
+                    </div>
+
+                    <form id="delivery-form">
+                        <div class="upload-grid">
+                            <label class="upload-zone" id="del-front-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">FRONT</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="front_image" accept="image/*" required>
+                            </label>
+                            <label class="upload-zone" id="del-back-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">BACK</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="back_image" accept="image/*" required>
+                            </label>
+                            <label class="upload-zone" id="del-side-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">SIDE</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="side_image" accept="image/*" required>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="delivery-submit-btn">
+                            🛡️ Save Delivery Evidence
+                        </button>
+                    </form>
+
+                    <!-- Success state after registration -->
+                    <div id="delivery-success" style="display:none; margin-top: 28px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+                        <h3 style="font-size: 20px; margin-bottom: 8px;">Evidence Registered Successfully</h3>
+                        <p style="color: var(--text-tertiary); margin-bottom: 14px;">
+                            Your delivery Order ID is:
+                        </p>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 800; color: var(--green);">
+                            #<span id="delivery-order-id">—</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
+                            Save this Order ID — you'll need it when processing a return.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ═══════════════ PROCESS RETURN ═══════════════ -->
+        <section id="return" class="page-section">
+            <div style="max-width: 860px; margin: 0 auto;">
+
+                <div class="glass-card animate-in">
+                    <div class="card-header">
+                        <div class="icon-box">🔍</div>
+                        <div>
+                            <h2>Process Return Verification</h2>
+                            <p>Enter the Order ID and upload the returned product images</p>
+                        </div>
+                    </div>
+
+                    <form id="return-form">
+                        <div class="input-group">
+                            <label for="return-order-id-input">Order ID</label>
+                            <input type="text" id="return-order-id-input" name="order_id" placeholder="e.g. 1" required>
+                        </div>
+
+                        <div class="upload-grid">
+                            <label class="upload-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">FRONT</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="front_image" accept="image/*" required>
+                            </label>
+                            <label class="upload-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">BACK</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="back_image" accept="image/*" required>
+                            </label>
+                            <label class="upload-zone">
+                                <span class="zone-icon">📸</span>
+                                <span class="zone-label">SIDE</span>
+                                <span class="zone-text">Drag & drop or click</span>
+                                <input type="file" name="side_image" accept="image/*" required>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            🤖 Run AI Analysis
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ═══════════════ RESULTS ═══════════════ -->
+        <section id="results" class="page-section" style="display:none;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+
+                <!-- Header -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        AI VERIFICATION COMPLETE
+                    </div>
+                    <h1 class="hero-title" style="font-size: 36px;">
+                        Order #<span id="result-order-id">—</span>
+                    </h1>
+                    <div id="result-verdict" class="verdict-badge review">
+                        <span class="verdict-dot"></span>
+                        Pending
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <!-- Score Gauge -->
+                    <div class="glass-card" style="text-align:center;">
+                        <h3 style="font-size: 14px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+                            Average Similarity
+                        </h3>
+                        <div class="score-gauge">
+                            <svg viewBox="0 0 136 136">
+                                <circle class="gauge-bg" cx="68" cy="68" r="62"/>
+                                <circle class="gauge-fill" id="gauge-fill" cx="68" cy="68" r="62"
+                                    stroke-dasharray="389.56"
+                                    stroke-dashoffset="389.56"/>
+                            </svg>
+                            <div class="gauge-value">
+                                <div class="gauge-number" id="gauge-number">0.0%</div>
+                                <div class="gauge-label">Match Score</div>
+                            </div>
+                        </div>
+
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <div class="score-val" id="front-score">—</div>
+                                <div class="score-lbl">Front</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-val" id="back-score">—</div>
+                                <div class="score-lbl">Back</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-val" id="side-score">—</div>
+                                <div class="score-lbl">Side</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Review -->
+                    <div class="glass-card">
+                        <div class="review-block" id="main-review" style="border:none; padding:0; margin:0; background:transparent;">
+                            <h3>⚖️ Final Judge Decision</h3>
+                            <pre>Waiting for results...</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Per-Angle VLM Reviews -->
+                <div style="margin-top: 20px;">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <div class="icon-box" style="background: rgba(139,92,246,0.15); box-shadow: none;">👁️</div>
+                            <div>
+                                <h2>VLM Per-Angle Reviews</h2>
+                                <p>Detailed visual analysis from the Vision-Language Model</p>
+                            </div>
+                        </div>
+
+                        <div class="review-block" id="front-review">
+                            <h3>📐 Front View</h3>
+                            <pre>No data</pre>
+                        </div>
+                        <div class="review-block" id="back-review" style="margin-top:12px;">
+                            <h3>📐 Back View</h3>
+                            <pre>No data</pre>
+                        </div>
+                        <div class="review-block" id="side-review" style="margin-top:12px;">
+                            <h3>📐 Side View</h3>
+                            <pre>No data</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn-secondary" onclick="backToDashboard()">
+                        ← Back to Dashboard
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ═══════════════ ORDER LOOKUP ═══════════════ -->
+        <section id="lookup" class="page-section">
+            <div style="max-width: 700px; margin: 0 auto;">
+
+                <div class="glass-card animate-in">
+                    <div class="card-header">
+                        <div class="icon-box">🔎</div>
+                        <div>
+                            <h2>Order Lookup</h2>
+                            <p>Check the verification status and details of any order</p>
+                        </div>
+                    </div>
+
+                    <form id="lookup-form" style="display: flex; gap: 12px; align-items: flex-end;">
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="lookup-id-input">Order ID</label>
+                            <input type="text" id="lookup-id-input" name="lookup_order_id" placeholder="Enter Order ID" required style="max-width: 100%;">
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top:0; height: 48px;">
+                            Search
+                        </button>
+                    </form>
+
+                    <div id="lookup-result"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+        <section id="how" class="page-section">
+            <div style="max-width: 1000px; margin: 0 auto;">
+
+                <div style="text-align:center; margin-bottom: 40px;">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        MULTI-AGENT AI PIPELINE
+                    </div>
+                    <h1 class="hero-title" style="font-size: 36px;">
+                        How <span class="gradient-text">ReturnGuard</span> Works
+                    </h1>
+                    <p class="hero-subtitle" style="margin-bottom: 0;">
+                        A chain of specialized AI agents work together to verify every return with visual evidence
+                    </p>
+                </div>
+
+                <div class="how-grid">
+                    <div class="how-card animate-in">
+                        <div class="step-num">01</div>
+                        <h3>📦 Delivery Evidence</h3>
+                        <p>Multi-angle photos are captured at delivery and background-removed. DINOv2 generates a product embedding as ground truth.</p>
+                    </div>
+                    <div class="how-card animate-in">
+                        <div class="step-num">02</div>
+                        <h3>🧬 Embedding Comparison</h3>
+                        <p>When a return is initiated, DINOv2 embeddings are generated for the return images and compared using cosine similarity across all angles.</p>
+                    </div>
+                    <div class="how-card animate-in">
+                        <div class="step-num">03</div>
+                        <h3>📐 Similarity Router</h3>
+                        <p>If similarity > 80%, the return is auto-accepted. Otherwise, images are routed to the Vision-Language Model for deep analysis.</p>
+                    </div>
+                    <div class="how-card animate-in">
+                        <div class="step-num">04</div>
+                        <h3>👁️ VLM Deep Analysis</h3>
+                        <p>Three parallel VLM agents analyze front, back, and side views independently — comparing product shape, color, labels, and damage.</p>
+                    </div>
+                    <div class="how-card animate-in">
+                        <div class="step-num">05</div>
+                        <h3>⚖️ Final Judge</h3>
+                        <p>A final LLM synthesizes all three VLM reviews into a unified verdict with evidence summary and confidence level.</p>
+                    </div>
+                    <div class="how-card animate-in">
+                        <div class="step-num">06</div>
+                        <h3>📊 Decision Output</h3>
+                        <p>Every decision ships with a full evidence report. Accept, escalate to human review, or reject — all with explainable reasoning.</p>
+                    </div>
+                </div>
+
+                <!-- Tech Stack -->
+                <div class="glass-card animate-in" style="margin-top: 30px;">
+                    <div class="card-header">
+                        <div class="icon-box">⚡</div>
+                        <div>
+                            <h2>Technology Stack</h2>
+                            <p>Built with production-grade AI infrastructure</p>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div class="score-item">
+                            <div class="score-val" style="font-size: 16px;">🧬</div>
+                            <div class="score-lbl" style="margin-top: 6px;">DINOv2</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Image Embeddings</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-val" style="font-size: 16px;">👁️</div>
+                            <div class="score-lbl" style="margin-top: 6px;">Gemini VLM</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Vision-Language</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-val" style="font-size: 16px;">🔗</div>
+                            <div class="score-lbl" style="margin-top: 6px;">LangGraph</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Agent Orchestration</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-val" style="font-size: 16px;">🎯</div>
+                            <div class="score-lbl" style="margin-top: 6px;">Flask</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">API Server</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-val" style="font-size: 16px;">🖼️</div>
+                            <div class="score-lbl" style="margin-top: 6px;">rembg</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Background Removal</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        ReturnGuard • Built by <a href="#">Rajveer Gupta</a> • Multi-Agent AI Return Fraud Detection
+    </footer>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
