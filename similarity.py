@@ -11,6 +11,7 @@ from langgraph.graph import StateGraph, START, END
 from typing import TypedDict
 from MainLanggraph import MainAgent
 from DatabaseHandling import add_review_data
+import re
 
 app = Flask(__name__)
 
@@ -109,7 +110,8 @@ def submit_return_images():
             status = "Human Review"
         else:
             status = "Rejected"
-
+    match = re.search(r"risk_score\s*=\s*(\d+)", results["main_review"])
+    risk_score = int(match.group(1)) if match else -1
     add_review_data(
         order_id,
         results["front_score"],
@@ -134,7 +136,8 @@ def submit_return_images():
         "front_review": results["front_review"],
         "back_review": results["back_review"],
         "side_review": results["side_review"],
-        "main_review": results["main_review"]
+        "main_review": results["main_review"],
+        "risk_score":risk_score
     })
 
 

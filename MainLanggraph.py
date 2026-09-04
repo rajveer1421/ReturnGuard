@@ -312,9 +312,18 @@ Explain the strongest evidence supporting your final judgement.
 
 ## REASONING
 Explain how the three reviews collectively led to the decision.
+You also need to provide me with risk score representing the chance of 
+fraud in this return 
 
+## RISK SCORE
+risk_score=<integer 0-100>
+This must be consistent with your judgement:
+- ACCEPTED → risk_score < 50
+- HUMAN REVIEW → risk_score 50-90
+- REJECTED → risk_score > 90
 When the evidence is ambiguous or conflicting, prefer HUMAN REVIEW
 rather than rejecting the return.
+
 """
         ),
         HumanMessage(
