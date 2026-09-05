@@ -104,13 +104,15 @@ def submit_return_images():
 
     status = results["status"]
     if status == "PASSED TO VLM FOR REVIEW":
-        if "vlm accepted" in results["main_review"].lower():
+        main_review_text = results["main_review"] or ""
+        if "vlm accepted" in main_review_text.lower():
             status = "VLM Accepted"
-        elif "human review" in results["main_review"].lower():
+        elif "human review" in main_review_text.lower():
             status = "Human Review"
         else:
             status = "Rejected"
-    match = re.search(r"risk_score\s*=\s*(\d+)", results["main_review"])
+    main_review_text = results["main_review"] or ""
+    match = re.search(r"risk_score\s*=\s*(\d+)", main_review_text)
     risk_score = int(match.group(1)) if match else -1
     add_review_data(
         order_id,

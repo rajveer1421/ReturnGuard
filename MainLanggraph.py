@@ -137,7 +137,13 @@ def compare_images(state: MainState):
 def vlm_router(state: MainState):
     status: str
 
-    if state["avg_score"] > 0.60:
+    # Threshold raised from 0.60 → 0.88.
+    # DINOv2 patch-mean embeddings score similar-material / similar-shape
+    # objects (e.g. two different steel bottles) at 85-92%, so 0.60 was
+    # far too permissive and allowed different products to auto-accept.
+    # At 0.88 only near-identical items bypass VLM; everything else gets
+    # a visual review.
+    if state["avg_score"] > 0.94:
         status = "RETURN_ACCEPTED"
     else:
         status = "PASSED TO VLM FOR REVIEW"
