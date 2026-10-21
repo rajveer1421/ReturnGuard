@@ -6,10 +6,15 @@
 [![Tests](https://github.com/rajveer1421/ReturnGuard/actions/workflows/tests.yml/badge.svg)](https://github.com/rajveer1421/ReturnGuard/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776ab?logo=python&logoColor=white)
 ![LangGraph](https://img.shields.io/badge/LangGraph-multi--agent-1c3c3c)
+[![Dataset on Kaggle](https://img.shields.io/badge/Dataset-Kaggle-20beff?logo=kaggle&logoColor=white)](https://www.kaggle.com/datasets/rajveergup1455/returnguard-product-photos)
 
 **▶ Try it live: [rajthebuilder-returnguard.hf.space](https://rajthebuilder-returnguard.hf.space)**. Sign in with any
 email and 10-digit number, then **Deliver → "Use the blue speaker"** and **Return → "Black speaker swapped in"**. It
 takes about a minute. (On the free tier the Space sleeps when idle, so the first visit can take a minute to wake it.)
+
+**Dataset: [ReturnGuard product photos on Kaggle](https://www.kaggle.com/datasets/rajveergup1455/returnguard-product-photos)**
+(private, access on request): raw photos of 8 items, the 84 labelled same/different pairs, and the 2,496-pair photo
+stress test with every distorted image, its score and contact sheets.
 
 Retailers lost an estimated **$103 billion** to fraudulent returns in 2024, and about **15% of all returns** were
 fraudulent ([Appriss Retail & Deloitte](https://apprissretail.com/news/appriss-retail-annual-research-fraudulent-returns-and-claims-cost-retailers-103b-in-2024/)).
@@ -167,7 +172,8 @@ returnguard/
   agents/                  identity, inspector, screen, policy, history, decision
 scripts/                   build_dataset.py, evaluate.py, stress_test_precision.py
 deploy/huggingface/        Space entry point (Gradio server -> Flask), upload builder
-Dataset/items/             raw photos: 8 items × front/back/side, two with a second photo set (see Dataset/README.md)
+Dataset/items/             raw photos: 8 items × front/back/side, two with a second photo set (see Dataset/README.md;
+                           full dataset with labelled pairs and stress-test images on Kaggle)
 results/                   evaluation output (JSON, Markdown, per-pair CSV)
 templates/, static/        single-page UI, evidence report, architecture diagram
 tests/                     offline unit and API tests
