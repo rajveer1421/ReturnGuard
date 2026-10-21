@@ -5,11 +5,14 @@
 import json
 import logging
 import os
+import re
 import secrets
+import threading
 import time
 from collections import defaultdict, deque
 
 from flask import Flask, abort, jsonify, render_template, request, send_from_directory, session
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from returnguard import config, explain, service, storage
 from returnguard.agents.history import customer_profile
@@ -32,6 +35,10 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = (config.MAX_UPLOAD_MB * 3 + 1) * 1024 * 1024
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+if os.getenv("SPACE_ID") or os.getenv("RG_CROSS_SITE_COOKIES") == "1":
+    # On Hugging Face the app is shown in an iframe on huggingface.co, a different site: a Lax cookie is never sent
+    # there, so sign-in would silently not stick. Allow it cross-site, HTTPS only, partitioned to that embedding.
+    app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True, SESSION_COOKIE_PARTITIONED=True)
 app.secret_key = _secret_key()
 storage.init_db()
 
@@ -46,9 +53,35 @@ def uploaded_images() -> dict:
     return files
 
 
-def media_urls(kind: str, item_id: int) -> dict:
-    return {a: {"photo": f"/media/{kind}/{item_id}/{a}.jpg", "cutout": f"/media/{kind}/{item_id}/{a}_cutout.png"}
+def media_urls(kind: str, item_id: int, token: str | None = None) -> dict:
+    q = f"?t={token}" if token else ""
+    return {a: {"photo": f"/media/{kind}/{item_id}/{a}.jpg{q}", "cutout": f"/media/{kind}/{item_id}/{a}_cutout.png{q}"}
             for a in config.ANGLES}
+
+
+# The evidence report opens in a new tab. On Hugging Face the app itself runs inside an iframe, and its session cookie
+# belongs to that embedding, so a new tab arrives signed out. The report link therefore carries a signed token that
+# names the owner; it expires after REPORT_LINK_MAX_AGE_S and still only opens that customer's own data.
+REPORT_LINK_MAX_AGE_S = 24 * 3600
+_links = URLSafeTimedSerializer(app.secret_key, salt="report-link")
+
+
+def report_token(customer_id: str) -> str:
+    return _links.dumps(customer_id)
+
+
+def viewer_id() -> str | None:
+    """The signed-in customer, or the owner named by a valid report-link token."""
+    customer = current_customer()
+    if customer:
+        return customer["customer_id"]
+    token = request.args.get("t")
+    if token:
+        try:
+            return _links.loads(token, max_age=REPORT_LINK_MAX_AGE_S)
+        except BadSignature:
+            return None
+    return None
 
 
 def current_customer() -> dict | None:
@@ -168,10 +201,43 @@ def create_delivery():
     days = request.form.get("delivered_days_ago", "0").strip() or "0"
     if not days.isdigit() or int(days) > 365:
         raise service.InputError("'Delivered days ago' must be a whole number between 0 and 365.")
-    order = service.register_delivery(uploaded_images(), customer["customer_id"],
-                                      request.form.get("product_name", "").strip()[:120],
-                                      request.form.get("category", "other"), int(days))
+    job = _progress_key(customer["customer_id"], request.form.get("job_id", ""))
+
+    def on_stage(key, detail=""):
+        if job:
+            with _progress_lock:
+                _progress[job] = {"stage": key, "detail": detail, "at": time.time()}
+
+    try:
+        order = service.register_delivery(uploaded_images(), customer["customer_id"],
+                                          request.form.get("product_name", "").strip()[:120],
+                                          request.form.get("category", "other"), int(days), on_stage=on_stage)
+    finally:
+        if job:
+            with _progress_lock:
+                _progress.pop(job, None)
     return jsonify(success=True, order=order, images=media_urls("orders", order["order_id"]))
+
+
+# Live delivery progress: the browser sends a random job_id with the upload and polls this while it waits.
+_progress: dict[tuple[str, str], dict] = {}
+_progress_lock = threading.Lock()
+
+
+def _progress_key(customer_id: str, job_id: str):
+    return (customer_id, job_id) if re.fullmatch(r"[A-Za-z0-9-]{8,64}", job_id or "") else None
+
+
+@app.get("/api/deliveries/progress/<job_id>")
+def delivery_progress(job_id):
+    customer = require_customer()
+    key = _progress_key(customer["customer_id"], job_id)
+    with _progress_lock:
+        stale = [k for k, v in _progress.items() if time.time() - v["at"] > 600]
+        for k in stale:
+            _progress.pop(k, None)
+        state = _progress.get(key) if key else None
+    return jsonify(success=True, stage=state["stage"] if state else None, detail=state["detail"] if state else "")
 
 
 @app.post("/api/returns")
@@ -193,7 +259,8 @@ def get_return(return_id):
     order = storage.get_order(ret["order_id"], with_features=False)
     explained = explain.explain_result(ret["result"], order) if ret["result"] else None
     return jsonify(success=True, ret=ret, order=order, explained=explained,
-                   delivery_images=media_urls("orders", ret["order_id"]), return_images=media_urls("returns", return_id))
+                   delivery_images=media_urls("orders", ret["order_id"]), return_images=media_urls("returns", return_id),
+                   report_url=f"/report/{return_id}?t={report_token(ret['customer_id'])}" if ret["result"] else None)
 
 
 @app.post("/api/returns/<int:return_id>/second-opinion")
@@ -284,16 +351,18 @@ def public_config():
 
 @app.get("/report/<int:return_id>")
 def report(return_id):
-    customer = current_customer()
+    viewer = viewer_id()
     ret = storage.get_return(return_id)
     if ret is None or not ret["result"]:
         abort(404)
-    if customer is None or ret["customer_id"] != customer["customer_id"]:
+    if viewer is None or ret["customer_id"] != viewer:
         abort(403)
+    token = request.args.get("t") if current_customer() is None else None
     order = storage.get_order(ret["order_id"], with_features=False)
     return render_template("report.html", ret=ret, order=order, r=ret["result"], reasons=config.RETURN_REASONS,
                            x=explain.explain_result(ret["result"], order),
-                           delivery=media_urls("orders", ret["order_id"]), returned=media_urls("returns", return_id),
+                           delivery=media_urls("orders", ret["order_id"], token),
+                           returned=media_urls("returns", return_id, token),
                            audit=storage.get_audit(return_id=return_id))
 
 
@@ -301,16 +370,16 @@ def report(return_id):
 def media(kind, item_id, name):
     if kind not in ("orders", "returns") or name not in MEDIA_FILES:
         abort(404)
-    customer = current_customer()
-    if customer is None:
+    viewer = viewer_id()
+    if viewer is None:
         abort(403)
     if kind == "orders":
         order = storage.get_order(item_id, with_features=False)
-        if order is None or order["customer_id"] != customer["customer_id"]:
+        if order is None or order["customer_id"] != viewer:
             abort(404)
         return send_from_directory(config.IMAGE_DIR / "orders" / str(item_id), name)
     ret = storage.get_return(item_id)
-    if ret is None or ret["customer_id"] != customer["customer_id"]:
+    if ret is None or ret["customer_id"] != viewer:
         abort(404)
     folder = service.return_dir(ret["order_id"], item_id)
     if not (folder / name).exists():                       # returns saved before photos moved under their order

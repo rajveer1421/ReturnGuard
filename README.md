@@ -2,12 +2,43 @@
 
 **Catch return fraud at the doorstep, not the warehouse.**
 
-ReturnGuard is a multi-agent AI system that checks whether a returned product is the *same physical unit* that was
-delivered. The delivery agent photographs the product at handover; when it comes back, a LangGraph pipeline compares
-the two with a free local visual screen, calls Gemini agents only when the cheap evidence can't settle the case, and
-produces an explainable verdict (accept, human review or reject) before the refund goes out.
+[![Live demo](https://img.shields.io/badge/Live_demo-Hugging_Face_Space-ff9d00?logo=huggingface&logoColor=white)](https://rajthebuilder-returnguard.hf.space)
+[![Tests](https://github.com/rajveer1421/ReturnGuard/actions/workflows/tests.yml/badge.svg)](https://github.com/rajveer1421/ReturnGuard/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/Python-3.12-3776ab?logo=python&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-multi--agent-1c3c3c)
 
-![ReturnGuard animation: the blue speaker is fingerprinted at delivery; five days later a black speaker comes back and is flagged](docs/screenshots/animation.png)
+**▶ Try it live: [rajthebuilder-returnguard.hf.space](https://rajthebuilder-returnguard.hf.space)**. Sign in with any
+email and 10-digit number, then **Deliver → "Use the blue speaker"** and **Return → "Black speaker swapped in"**. It
+takes about a minute. (On the free tier the Space sleeps when idle, so the first visit can take a minute to wake it.)
+
+Retailers lost an estimated **$103 billion** to fraudulent returns in 2024, and about **15% of all returns** were
+fraudulent ([Appriss Retail & Deloitte](https://apprissretail.com/news/appriss-retail-annual-research-fraudulent-returns-and-claims-cost-retailers-103b-in-2024/)).
+A common trick is to keep the new product and send back an old or different one. Today that is usually caught in a
+warehouse days later, after the refund has gone out.
+
+ReturnGuard is a **multi-agent AI system** that checks whether a returned product is the *same physical unit* that was
+delivered. The delivery agent photographs the product at handover. When it comes back, a **LangGraph** pipeline
+compares the two with a free local vision screen (DINOv2 + colour), calls **Gemini agents only when the cheap evidence
+can't settle the case**, and gives an explainable verdict (accept, human review or reject) before the refund is paid.
+
+![ReturnGuard: a blue speaker is fingerprinted at delivery; five days later a black speaker comes back and is flagged at the doorstep](docs/screenshots/animation.png)
+
+## Highlights
+
+- **97.4% precision under stress** (2,016 of 2,070 flags were fraud, 95% interval 96.6–98.0%) with **100% recall**,
+  across 36 photo-distortion conditions. F0.5 = **0.986** on the labelled set.
+- **79% of returns decided with zero LLM calls.** 0.21 Gemini calls per return, about **$1 per 1,000 returns**.
+- **Agentic design:** parallel policy, customer-history and vision agents; conditional routing; a **blind label-reading
+  agent** that is told where the label was, never what it said; structured outputs; fail-safe when an agent is down.
+- **Explainable:** every number is translated into plain language ("colour difference 3.9, normal is under 2.8"), and
+  every verdict comes with a printable evidence report for the seller.
+- **Honest evaluation:** confidence intervals on every rate, ablations against v1, held-out items, a photo-distortion
+  stress test, and an evaluator that refuses to publish a run in which any LLM call failed.
+- **Deployed:** live on Hugging Face Spaces, auto-deployed from GitHub Actions, with 35 offline tests in CI.
+
+**Tech stack:** Python · LangGraph · Google Gemini (structured outputs via LangChain) · PyTorch · DINOv2 (Hugging Face
+Transformers) · U²-Net background removal (rembg) · Pydantic · Flask · SQLite · Gradio server on Hugging Face Spaces ·
+GitHub Actions
 
 ## Results
 
@@ -20,28 +51,31 @@ Measured by `python scripts/evaluate.py` on 48 labelled delivery/return pairs bu
 | v2: local evidence only (object-only DINOv2 + colour) | 0 | 100% | 100% | 1.000 |
 | **v2: full multi-agent pipeline** | **0.21** | **100%** | **93.3%** | **0.986** |
 
-- **Stress-tested precision: 97.4%** (2,016 of 2,070 flags were fraud, 95% interval 96.6–98.0%). Every return photo was
-  distorted 18 ways at two strengths (rotation, viewpoint, distance, crop, lighting, colour cast, blur, noise, JPEG, low
-  resolution, a finger over the lens, a new background) and run through the local stage; recall stayed 100%. The weak
-  spots are strong warm or cool light, very heavy JPEG compression and far-away photos.
-  Report: [results/stress_precision.md](results/stress_precision.md) (`python scripts/stress_test_precision.py`).
-- **79% of returns are decided with no LLM call**: clearly different products are fast-rejected and clear matches fast-accepted locally. v1 made up to 4 Gemini calls per return.
-- **What the 100% is worth:** 28/28 flags were fraud, but with this few pairs the 95% interval for precision is **88–100%**, and the share of genuine customers wrongly flagged (0/18) could be as high as **18%**. Recall is 93.3% (interval 79–98%).
-- **0 genuine returns flagged** in this run. Structured output was valid on the first try for 100% of calls.
-- **Estimated cost: about $1 per 1,000 returns** at Gemini 2.5 Flash list prices; mean latency about 3 s per return on CPU (up to ~18 s when both agents run).
-- **Two misses, both on the steel bottles.** The local screen flagged them, but the Gemini inspector called the strap an "added accessory" and said "same unit, 95%". The fixes (treat a missing accessory as an incomplete return; escalate strong screen/inspector disagreement) are documented, not applied: they came from this same data and need new items to validate honestly.
+**Stress test (precision under bad photos).** Every return photo was distorted 18 ways at two strengths (rotation,
+viewpoint, distance, crop, lighting, colour cast, blur, noise, JPEG, low resolution, a finger over the lens, a new
+background) and run through the local stage: **97.4% precision** (2,016/2,070, 95% interval 96.6–98.0%), recall 100%.
+The weak spots are strong warm or cool light, very heavy JPEG compression and far-away photos.
+Report: [results/stress_precision.md](results/stress_precision.md) (`python scripts/stress_test_precision.py`).
 
-**Read with care:** 48 pairs is small, return photos are simulated re-captures (rotation, exposure, white balance, blur,
-JPEG) of one photo session per item, and the thresholds were chosen on this data. Full report:
-[results/eval_report.md](results/eval_report.md).
+- **Cost and speed:** mean latency about 3 s per return on CPU (up to ~18 s when both Gemini agents run); structured
+  output valid on the first try for 100% of calls.
+- **Two misses, both on the steel bottles.** The local screen flagged them, but the Gemini inspector called the strap an
+  "added accessory" and said "same unit, 95%". The fixes (treat a missing accessory as an incomplete return; escalate
+  strong screen/inspector disagreement) are documented, not applied: they came from this same data and need new items
+  to validate honestly.
 
-**In progress: a harder, partly held-out test.** The dataset now has 84 pairs: two Sony headphones were added
-*after* every threshold and weight was frozen, photographed in real cluttered scenes (on laptops, in hand), including
-**4 real re-photographs** (two independent photo sessions per item) instead of edited copies. A first local pass
-already shows they are much harder: background removal pulls in the laptop, and genuine and swapped headphones overlap
-on shape similarity (0.83 vs 0.75–0.82), so every case needs the Gemini agents. That run is being completed on
-`gemini-3.8-flash` (Google no longer offers 2.5 Flash to new API keys); its numbers, reported separately for the
-held-out items, will replace the table above. The evaluator refuses to publish a run in which any Gemini call failed.
+### Limits, stated plainly
+
+- **Small labelled set.** 28/28 flags were fraud, but with 48 pairs the 95% interval for precision is 88–100%, and the
+  share of genuine customers wrongly flagged (0/18) could be as high as 18%. That is why the stress test above exists.
+- **Simulated re-captures.** Most genuine return photos are edited copies of one photo session per item, and the
+  thresholds were chosen on this data. Full report: [results/eval_report.md](results/eval_report.md).
+- **Held-out test in progress.** Two Sony headphones were added *after* every threshold was frozen, photographed in real
+  cluttered scenes with **4 real re-photographs**. They are much harder: genuine and swapped headphones overlap on shape
+  (0.83 vs 0.75–0.82), so they rely on the Gemini agents. That run on `gemini-3.8-flash` is waiting on API quota and
+  will be reported separately.
+
+![Evidence report for a rejected headphones return](docs/screenshots/report.png)
 
 ## Architecture
 
@@ -91,9 +125,7 @@ audit log, and every verdict comes with a printable [evidence report](#features)
 - **Seller evidence report**: `/report/<return_id>` is a printable, human-readable page (save as PDF): what happened, what was checked and what each result means, Gemini's verdict, photos, next steps, and a technical appendix.
 - **Resilience**: every Gemini call has a timeout, retries with backoff, rate-limit handling, and schema validation. If an agent still fails, the return goes to a human rather than being auto-accepted. A daily-quota error fails fast instead of sleeping for hours, and a server restart never leaves a return stuck in "processing".
 - **Safety**: numeric-only order IDs, whitelisted media paths, upload size limits, and an optional per-IP rate limit for public demos.
-- **32 offline tests** (no API key needed) and a GitHub Actions workflow.
-
-![Result page](docs/screenshots/result.png)
+- **35 offline tests** (no API key needed), run by GitHub Actions on every push.
 
 ## Quick start
 
@@ -111,7 +143,8 @@ in"** runs the full demo with bundled sample photos. The default model is `gemin
 ```bash
 python scripts/build_dataset.py   # Dataset/items → Dataset/{same,different}/... + pairs.csv
 python scripts/evaluate.py        # writes results/eval_results.json (the website reads it)
-pytest -q                         # 24 tests, offline
+python scripts/stress_test_precision.py   # photo-distortion precision test
+pytest -q                         # 35 tests, offline
 ```
 
 On a free-tier Gemini key, set `RG_LLM_MIN_INTERVAL_S=7` for evaluation runs to stay under the per-minute limit.
@@ -132,12 +165,20 @@ returnguard/
   service.py               accounts, delivery registration, async return processing, second opinion, audit trail
   storage.py               SQLite: customers, orders, returns, audit_log
   agents/                  identity, inspector, screen, policy, history, decision
-scripts/                   build_dataset.py, evaluate.py
+scripts/                   build_dataset.py, evaluate.py, stress_test_precision.py
+deploy/huggingface/        Space entry point (Gradio server -> Flask), upload builder
 Dataset/items/             raw photos: 8 items × front/back/side, two with a second photo set (see Dataset/README.md)
 results/                   evaluation output (JSON, Markdown, per-pair CSV)
 templates/, static/        single-page UI, evidence report, architecture diagram
 tests/                     offline unit and API tests
 ```
+
+## Deployment
+
+The live demo runs on **Hugging Face Spaces** (free ZeroGPU tier; the app itself runs on CPU). Every push to `main`
+runs the tests and redeploys the Space through GitHub Actions
+([`.github/workflows/deploy-space.yml`](.github/workflows/deploy-space.yml)). Details, secrets and alternatives:
+[DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Design decisions
 

@@ -70,3 +70,12 @@ def test_exhausted_daily_quota_fails_fast_instead_of_sleeping(fake):
     with pytest.raises(llm.LLMError):
         llm.call_structured("t", Out, "sys", [llm.text_part("hi")])
     assert r.calls == 1 and time.monotonic() - start < 5
+
+
+def test_missing_api_key_is_an_llm_error_not_a_crash(monkeypatch):
+    def no_key(_model):
+        raise ValueError("API key required for Gemini Developer API")
+    monkeypatch.setattr(llm, "_chat", no_key)
+    with pytest.raises(llm.LLMError) as exc:
+        llm.call_structured("identity_fingerprint", Out, "system", [])
+    assert exc.value.record.ok is False and "API key" in exc.value.record.error

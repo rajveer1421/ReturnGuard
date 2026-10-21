@@ -97,21 +97,32 @@ def _save(images: dict, cutouts: dict, folder):
 
 # ── delivery ───────────────────────────────────────────────────────────────
 def register_delivery(files: dict, customer_id: str, product_name: str, category: str,
-                      delivered_days_ago: int = 0) -> dict:
+                      delivered_days_ago: int = 0, on_stage=None) -> dict:
+    """on_stage(key, detail) is called as each step starts, so the UI can show live progress."""
+    stage = on_stage or (lambda key, detail="": None)
     if category not in config.RETURN_WINDOW_DAYS:
         raise InputError(f"Unknown category '{category}'.")
     images = _load_all(files)
-    cutouts = {a: imaging.remove_background(images[a]) for a in config.ANGLES}
+    cutouts = {}
+    for i, a in enumerate(config.ANGLES, 1):
+        stage("background", f"{a} view ({i}/{len(config.ANGLES)})")
+        cutouts[a] = imaging.remove_background(images[a])
+    stage("quality", "blur and framing")
     quality = {a: imaging.assess_quality(images[a], cutouts[a]) for a in config.ANGLES}
     bad = [f"{a.capitalize()}: {q.problem}" for a, q in quality.items() if not q.ok]
     if bad:
         raise InputError(" ".join(bad))
 
-    features = {a: view_features(cutouts[a]).to_dict() for a in config.ANGLES}
+    features = {}
+    for i, a in enumerate(config.ANGLES, 1):
+        stage("embeddings", f"{a} view ({i}/{len(config.ANGLES)})")
+        features[a] = view_features(cutouts[a]).to_dict()
+    stage("save", "")
     delivered_at = (datetime.now(timezone.utc) - timedelta(days=max(0, delivered_days_ago))).isoformat(timespec="seconds")
     order_id = storage.create_order(customer_id, product_name, category, delivered_at, features)
     _save(images, cutouts, order_dir(order_id))
 
+    stage("labels", f"order #{order_id}")
     try:
         fp, rec = identity.fingerprint(cutouts)
         fingerprint = fp.model_dump()

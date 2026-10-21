@@ -595,3 +595,14 @@ footer a:hover { color: var(--text); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+
+/* ── live progress steps (busy overlay) ─────────────────────────────── */
+.live-steps { list-style: none; margin: 18px auto 0; padding: 0; text-align: left; display: grid; gap: 10px; min-width: 300px; }
+.live-steps li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-3); transition: color .2s; }
+.live-steps .ls-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; border-radius: 50%; border: 1.5px solid var(--border-strong, var(--border)); }
+.live-steps .ls-detail { color: var(--text-3); font-size: 12.5px; font-weight: 400; }
+.live-steps li.active { color: var(--text); font-weight: 500; }
+.live-steps li.active .ls-icon { border: 2px solid var(--surface-3); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+.live-steps li.done { color: var(--text-2); }
+.live-steps li.done .ls-icon { border-color: var(--ok); background: var(--ok); position: relative; }
+.live-steps li.done .ls-icon::after { content: ""; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }

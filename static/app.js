@@ -49,10 +49,36 @@ function toast(msg, type = '') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
 }
-function busy(on, title = '', sub = '') {
+function busy(on, title = '', sub = '', steps = null) {
   $('#busy').classList.toggle('show', on);
+  $('#busy-spinner').classList.toggle('hidden', on && !!steps);
+  $('#busy-steps').classList.toggle('hidden', !(on && steps));
   if (on) { $('#busy-title').textContent = title; $('#busy-sub').textContent = sub; }
+  if (on && steps) {
+    $('#busy-steps').innerHTML = steps.map(s => `<li data-step="${s.key}"><span class="ls-icon"></span><span class="ls-text">${esc(s.label)}<small class="ls-detail"></small></span></li>`).join('');
+    busyStep(steps[0].key);
+  }
 }
+// Mark every step before `key` done and `key` itself active (with an optional detail like "front view (1/3)").
+function busyStep(key, detail = '') {
+  const items = $$('#busy-steps li');
+  const at = items.findIndex(li => li.dataset.step === key);
+  if (at < 0) return;
+  items.forEach((li, i) => {
+    li.className = i < at ? 'done' : i === at ? 'active' : '';
+    $('.ls-detail', li).textContent = i === at && detail ? ` · ${detail}` : '';
+  });
+}
+
+const DELIVERY_STEPS = [
+  { key: 'upload', label: 'Uploading photos' },
+  { key: 'background', label: 'Removing backgrounds' },
+  { key: 'quality', label: 'Checking photo quality' },
+  { key: 'embeddings', label: 'Computing DINOv2 embeddings and colour' },
+  { key: 'save', label: 'Saving the order' },
+  { key: 'labels', label: 'Gemini reading labels and serials' },
+];
+const newJobId = () => (crypto.randomUUID ? crypto.randomUUID() : `job-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
 
 /* ── theme ───────────────────────────────────────────────────────────── */
 function initTheme() {
@@ -163,9 +189,24 @@ function initDelivery() {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     if (ANGLES.some(a => !$(`input[name="${a}_image"]`, form).files.length)) return toast('Add all three photos (front, back, side).', 'error');
-    busy(true, 'Registering delivery', 'Removing backgrounds, computing embeddings, and reading labels with the identity agent…');
+    busy(true, 'Registering delivery', 'Live progress from the server:', DELIVERY_STEPS);
+    const jobId = newJobId();
+    const body = new FormData(form);
+    body.append('job_id', jobId);
+    let polling = true;
+    (async function poll() {
+      while (polling) {
+        try {
+          const p = await api(`/api/deliveries/progress/${jobId}`);
+          if (polling && p.stage) busyStep(p.stage, p.detail);
+        } catch (e) { /* progress is best effort */ }
+        await new Promise(r => setTimeout(r, 450));
+      }
+    })();
     try {
-      const data = await api('/api/deliveries', { method: 'POST', body: new FormData(form) });
+      const data = await api('/api/deliveries', { method: 'POST', body });
+      polling = false;
+      $$('#busy-steps li').forEach(li => { li.className = 'done'; });
       store.set('rg-last-order', data.order.order_id);
       renderDelivery(data.order, data.images);
       clearPreviews(form);
@@ -175,6 +216,7 @@ function initDelivery() {
     } catch (err) {
       toast(err.message, 'error');
     } finally {
+      polling = false;
       busy(false);
     }
   });
@@ -291,7 +333,7 @@ function geminiCard(g, returnId) {
     </div></div>`;
 }
 
-function renderResult({ ret, order, explained: x, delivery_images: dImg, return_images: rImg }) {
+function renderResult({ ret, order, explained: x, delivery_images: dImg, return_images: rImg, report_url }) {
   $('#res-eyebrow').textContent = `Return #${ret.return_id} · Order #${ret.order_id}`;
   $('#res-sub').textContent = `${order.product_name || order.category} · customer ${order.customer_id} · reason: ${ret.reason.replace(/_/g, ' ')}`;
   renderPipeline(ret);
@@ -309,7 +351,7 @@ function renderResult({ ret, order, explained: x, delivery_images: dImg, return_
 
   const r = ret.result, d = r.decision;
   $('#res-title').textContent = d.headline;
-  $('#res-report').href = `/report/${ret.return_id}`;
+  $('#res-report').href = report_url || `/report/${ret.return_id}`;
   $('#res-report').classList.remove('hidden');
   $('#res-verdict').innerHTML = `
     <div class="verdict ${d.decision}">

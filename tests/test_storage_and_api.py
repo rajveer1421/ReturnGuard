@@ -111,3 +111,21 @@ def test_deliveries_need_sign_in_and_returns_need_the_owner():
     client.post("/api/auth/signup", json={"email": "someone-else@example.com", "phone": "9000000002"})
     r = client.post("/api/returns", data={"order_id": str(oid), "reason": "changed_mind"})
     assert r.status_code == 403 and "another customer" in r.get_json()["error"]
+
+
+def test_report_link_works_in_a_new_tab_without_the_session_cookie():
+    from app import app, report_token
+    owner = app.test_client()
+    c = owner.post("/api/auth/signup", json={"email": "carol@example.com", "phone": "9333333333"}).get_json()["customer"]
+    other = storage.create_customer("dave@example.com", "9444444444")
+    order = storage.create_order(c["customer_id"], "carol speaker", "electronics", "2026-10-01T00:00:00+00:00", {})
+    ret = storage.create_return(order, "changed_mind")
+    storage.finish_return(ret, "REJECT", 99, {"decision": {"decision": "REJECT"}})
+
+    url = owner.get(f"/api/returns/{ret}").get_json()["report_url"]
+    token = url.split("?t=")[1]
+    new_tab = app.test_client()                                   # no cookie, like a new tab outside the iframe
+    assert new_tab.get(f"/media/orders/{order}/front.jpg").status_code == 403
+    assert new_tab.get(f"/media/orders/{order}/front.jpg?t={token}").status_code == 404   # allowed; no file in test
+    assert new_tab.get(f"/report/{ret}?t={token}x").status_code == 403                    # tampered
+    assert new_tab.get(f"/report/{ret}?t={report_token(other['customer_id'])}").status_code == 403  # not the owner

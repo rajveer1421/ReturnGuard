@@ -20,7 +20,9 @@ OUT = ROOT / "build" / "hf_space"
 # The Space also installs Gradio, which pins some of the same libraries. Leave these unpinned there so pip can
 # pick versions that suit both; the exact versions used for the evaluation stay in the repo's requirements.txt.
 UNPIN = {"pillow", "numpy", "pydantic"}
-DROP = {"pytest"}
+# torch is preinstalled on ZeroGPU (which only accepts a few versions); gunicorn and pytest aren't used there.
+DROP = {"pytest", "gunicorn", "torch"}
+ADD = ["a2wsgi==1.10.10"]  # serves the Flask app inside Gradio's server (space_app.py)
 
 
 def main():
@@ -45,6 +47,7 @@ def main():
         if name in DROP:
             continue
         lines.append(name if name in UNPIN else line)
+    lines = [line for line in lines if line.strip() and not line.startswith("# development")] + ADD
     (OUT / "requirements.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     files = sum(1 for p in OUT.rglob("*") if p.is_file())

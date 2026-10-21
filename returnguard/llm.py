@@ -119,7 +119,10 @@ def call_structured(agent: str, schema: type[BaseModel], system: str, parts: lis
                          saved["output_tokens"])
         return schema.model_validate(saved["parsed"]), rec
 
-    runnable = _chat(model).with_structured_output(schema, include_raw=True)
+    try:
+        runnable = _chat(model).with_structured_output(schema, include_raw=True)
+    except Exception as e:  # e.g. no GOOGLE_API_KEY: fail like any other unavailable agent, don't crash the request
+        raise LLMError(agent, e, CallRecord(agent, model, False, False, 0, 0.0, 0, 0, error=f"{type(e).__name__}: {e}")) from e
     messages = [SystemMessage(content=system), HumanMessage(content=parts)]
     start = time.monotonic()
     last_err: Exception | None = None
