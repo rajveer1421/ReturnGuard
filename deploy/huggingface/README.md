@@ -3,8 +3,10 @@ title: ReturnGuard
 emoji: 🛡️
 colorFrom: indigo
 colorTo: green
-sdk: docker
-app_port: 7860
+sdk: gradio
+sdk_version: 5.49.1
+python_version: "3.12"
+app_file: space_app.py
 pinned: false
 short_description: Multi-agent AI that catches return fraud at the doorstep
 ---

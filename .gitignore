@@ -41,3 +41,6 @@ docs/screenshots/evaluation.png
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Hugging Face Space upload folder (python deploy/huggingface/prepare_space.py)
+build/
