@@ -1,0 +1,3696 @@
+{
+  "generated_at": "2026-10-20T00:39:39",
+  "stage": "local (no LLM calls)",
+  "summary": {
+    "conditions": 36,
+    "genuine_returns_tested": 288,
+    "genuine_flagged_by_local_stage": 54,
+    "hard_false_rejections": 2,
+    "sent_to_gemini": 78,
+    "retakes": 4,
+    "fast_accepted": 204,
+    "fraud_prevalence_assumed_for_implied_precision": 0.15
+  },
+  "conditions": [
+    {
+      "condition": "baseline",
+      "label": "No change (same photo, re-encoded)",
+      "level": "none",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9961,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9993,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9994,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9961,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.999,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9996,
+          "color_shift": 0.04
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9991,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9995,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9996,
+          "color_shift": 0.03
+        }
+      ]
+    },
+    {
+      "condition": "rotation",
+      "label": "Rotated",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.6333,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9806,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9798,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9037,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9671,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9749,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9635,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.6333,
+          "color_shift": 0.65
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9256,
+          "color_shift": 0.56
+        }
+      ]
+    },
+    {
+      "condition": "rotation",
+      "label": "Rotated",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 2,
+        "fn": 0,
+        "tn": 6,
+        "precision": 0.9655,
+        "precision_ci": [
+          0.8827,
+          0.9905
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9722,
+        "false_flag_rate": 0.25,
+        "false_flag_ci": [
+          0.0715,
+          0.5907
+        ],
+        "implied_precision_at_15pct_fraud": 0.4138
+      },
+      "genuine_routing": {
+        "fast_accept": 5,
+        "sent_to_gemini": 2,
+        "fast_reject": 1,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.5994,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9472,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9667,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8484,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.932,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9323,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9362,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "REJECT",
+          "screen": "clear_mismatch",
+          "shape_mean": 0.5994,
+          "color_shift": 2.2
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8682,
+          "color_shift": 0.39
+        }
+      ]
+    },
+    {
+      "condition": "perspective",
+      "label": "Viewpoint tilt",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 7,
+        "sent_to_gemini": 1,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9282,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9908,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9896,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9811,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.978,
+          "color_shift": 0.1
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9906,
+          "color_shift": 0.12
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9876,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9899,
+          "color_shift": 0.38
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9282,
+          "color_shift": 0.12
+        }
+      ]
+    },
+    {
+      "condition": "perspective",
+      "label": "Viewpoint tilt",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 2,
+        "fn": 0,
+        "tn": 6,
+        "precision": 0.9655,
+        "precision_ci": [
+          0.8827,
+          0.9905
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9722,
+        "false_flag_rate": 0.25,
+        "false_flag_ci": [
+          0.0715,
+          0.5907
+        ],
+        "implied_precision_at_15pct_fraud": 0.4138
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.7895,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9799,
+          "color_shift": 0.17
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9807,
+          "color_shift": 0.36
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9466,
+          "color_shift": 0.14
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9471,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9875,
+          "color_shift": 0.1
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9709,
+          "color_shift": 0.13
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8458,
+          "color_shift": 1.28
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.7895,
+          "color_shift": 0.53
+        }
+      ]
+    },
+    {
+      "condition": "zoom_out",
+      "label": "Photographed from further away",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 7,
+        "sent_to_gemini": 1,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8318,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9982,
+          "color_shift": 0.04
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9975,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9689,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9918,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9983,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9986,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9415,
+          "color_shift": 1.16
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8318,
+          "color_shift": 0.46
+        }
+      ]
+    },
+    {
+      "condition": "zoom_out",
+      "label": "Photographed from further away",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 6,
+        "fn": 0,
+        "tn": 2,
+        "precision": 0.9032,
+        "precision_ci": [
+          0.8045,
+          0.9549
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9211,
+        "false_flag_rate": 0.75,
+        "false_flag_ci": [
+          0.4093,
+          0.9285
+        ],
+        "implied_precision_at_15pct_fraud": 0.1905
+      },
+      "genuine_routing": {
+        "fast_accept": 2,
+        "sent_to_gemini": 5,
+        "fast_reject": 1,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.5752,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9966,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9952,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.6274,
+          "color_shift": 0.88
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.6713,
+          "color_shift": 3.53
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "REJECT",
+          "screen": "clear_mismatch",
+          "shape_mean": 0.5752,
+          "color_shift": 1.65
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.6956,
+          "color_shift": 1.94
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.7937,
+          "color_shift": 4.5
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.7851,
+          "color_shift": 0.62
+        }
+      ]
+    },
+    {
+      "condition": "crop",
+      "label": "Partly out of frame",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9645,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9828,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9788,
+          "color_shift": 0.15
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9805,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9849,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9942,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9893,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9645,
+          "color_shift": 0.14
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9846,
+          "color_shift": 0.04
+        }
+      ]
+    },
+    {
+      "condition": "crop",
+      "label": "Partly out of frame",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 7,
+        "sent_to_gemini": 1,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.7967,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9827,
+          "color_shift": 0.0
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9604,
+          "color_shift": 0.32
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9493,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9775,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9712,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9711,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.7967,
+          "color_shift": 1.64
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9546,
+          "color_shift": 0.1
+        }
+      ]
+    },
+    {
+      "condition": "darker",
+      "label": "Darker room",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9927,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9934,
+          "color_shift": 1.99
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9959,
+          "color_shift": 0.88
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9929,
+          "color_shift": 0.91
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9927,
+          "color_shift": 0.79
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9959,
+          "color_shift": 0.7
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.994,
+          "color_shift": 0.77
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.994,
+          "color_shift": 1.77
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.997,
+          "color_shift": 1.03
+        }
+      ]
+    },
+    {
+      "condition": "darker",
+      "label": "Darker room",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9498,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9812,
+          "color_shift": 4.04
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9883,
+          "color_shift": 2.07
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9714,
+          "color_shift": 1.73
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9701,
+          "color_shift": 2.14
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9498,
+          "color_shift": 1.46
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.956,
+          "color_shift": 1.52
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9774,
+          "color_shift": 3.51
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9818,
+          "color_shift": 1.98
+        }
+      ]
+    },
+    {
+      "condition": "brighter",
+      "label": "Overexposed",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9841,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9947,
+          "color_shift": 2.16
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9954,
+          "color_shift": 0.95
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9888,
+          "color_shift": 0.88
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9939,
+          "color_shift": 1.16
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9961,
+          "color_shift": 0.42
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.993,
+          "color_shift": 0.66
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9841,
+          "color_shift": 1.69
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9916,
+          "color_shift": 1.0
+        }
+      ]
+    },
+    {
+      "condition": "brighter",
+      "label": "Overexposed",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8148,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9868,
+          "color_shift": 3.86
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9857,
+          "color_shift": 1.72
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9756,
+          "color_shift": 1.02
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9748,
+          "color_shift": 2.4
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9823,
+          "color_shift": 1.55
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9816,
+          "color_shift": 1.92
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8148,
+          "color_shift": 2.26
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.956,
+          "color_shift": 1.95
+        }
+      ]
+    },
+    {
+      "condition": "warm",
+      "label": "Warm (yellow) light",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 4,
+        "fn": 0,
+        "tn": 4,
+        "precision": 0.9333,
+        "precision_ci": [
+          0.8407,
+          0.9738
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9459,
+        "false_flag_rate": 0.5,
+        "false_flag_ci": [
+          0.2152,
+          0.7848
+        ],
+        "implied_precision_at_15pct_fraud": 0.2609
+      },
+      "genuine_routing": {
+        "fast_accept": 1,
+        "sent_to_gemini": 7,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9793,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9964,
+          "color_shift": 4.39
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9953,
+          "color_shift": 3.79
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.986,
+          "color_shift": 2.83
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9969,
+          "color_shift": 3.27
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9963,
+          "color_shift": 5.67
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9958,
+          "color_shift": 5.58
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9957,
+          "color_shift": 5.03
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9793,
+          "color_shift": 5.32
+        }
+      ]
+    },
+    {
+      "condition": "warm",
+      "label": "Warm (yellow) light",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 8,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.875,
+        "precision_ci": [
+          0.7723,
+          0.9353
+        ],
+        "recall": 1.0,
+        "f0_5": 0.8974,
+        "false_flag_rate": 1.0,
+        "false_flag_ci": [
+          0.6756,
+          1
+        ],
+        "implied_precision_at_15pct_fraud": 0.15
+      },
+      "genuine_routing": {
+        "fast_accept": 0,
+        "sent_to_gemini": 8,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9682,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9864,
+          "color_shift": 11.09
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.989,
+          "color_shift": 9.81
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9765,
+          "color_shift": 7.33
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9888,
+          "color_shift": 7.59
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.987,
+          "color_shift": 13.8
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9813,
+          "color_shift": 13.66
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9772,
+          "color_shift": 11.0
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9682,
+          "color_shift": 13.22
+        }
+      ]
+    },
+    {
+      "condition": "cool",
+      "label": "Cool (blue) light",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 3,
+        "fn": 0,
+        "tn": 5,
+        "precision": 0.9492,
+        "precision_ci": [
+          0.8608,
+          0.9826
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9589,
+        "false_flag_rate": 0.375,
+        "false_flag_ci": [
+          0.1368,
+          0.6943
+        ],
+        "implied_precision_at_15pct_fraud": 0.32
+      },
+      "genuine_routing": {
+        "fast_accept": 1,
+        "sent_to_gemini": 7,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9902,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9979,
+          "color_shift": 3.67
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9976,
+          "color_shift": 3.56
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9902,
+          "color_shift": 3.18
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.997,
+          "color_shift": 2.81
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9977,
+          "color_shift": 5.33
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.997,
+          "color_shift": 4.97
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9975,
+          "color_shift": 3.79
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9976,
+          "color_shift": 5.25
+        }
+      ]
+    },
+    {
+      "condition": "cool",
+      "label": "Cool (blue) light",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 8,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.875,
+        "precision_ci": [
+          0.7723,
+          0.9353
+        ],
+        "recall": 1.0,
+        "f0_5": 0.8974,
+        "false_flag_rate": 1.0,
+        "false_flag_ci": [
+          0.6756,
+          1
+        ],
+        "implied_precision_at_15pct_fraud": 0.15
+      },
+      "genuine_routing": {
+        "fast_accept": 0,
+        "sent_to_gemini": 8,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9852,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9954,
+          "color_shift": 8.24
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9919,
+          "color_shift": 7.67
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9852,
+          "color_shift": 6.59
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9915,
+          "color_shift": 6.69
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9934,
+          "color_shift": 11.59
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9912,
+          "color_shift": 11.36
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9927,
+          "color_shift": 9.96
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9931,
+          "color_shift": 11.76
+        }
+      ]
+    },
+    {
+      "condition": "low_contrast",
+      "label": "Low contrast / haze",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9838,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9943,
+          "color_shift": 2.56
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9956,
+          "color_shift": 1.22
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9865,
+          "color_shift": 0.79
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9927,
+          "color_shift": 1.16
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9967,
+          "color_shift": 0.87
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.997,
+          "color_shift": 0.96
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9838,
+          "color_shift": 1.98
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9948,
+          "color_shift": 1.03
+        }
+      ]
+    },
+    {
+      "condition": "low_contrast",
+      "label": "Low contrast / haze",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9402,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9723,
+          "color_shift": 4.56
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.965,
+          "color_shift": 2.12
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9588,
+          "color_shift": 1.91
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9402,
+          "color_shift": 2.3
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9825,
+          "color_shift": 1.71
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9883,
+          "color_shift": 1.72
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9687,
+          "color_shift": 3.79
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9889,
+          "color_shift": 1.99
+        }
+      ]
+    },
+    {
+      "condition": "shadow",
+      "label": "Shadow across the item",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9776,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9965,
+          "color_shift": 1.25
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9962,
+          "color_shift": 0.32
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9862,
+          "color_shift": 0.09
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9975,
+          "color_shift": 0.21
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9975,
+          "color_shift": 0.21
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.997,
+          "color_shift": 0.23
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9941,
+          "color_shift": 0.71
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9776,
+          "color_shift": 0.25
+        }
+      ]
+    },
+    {
+      "condition": "shadow",
+      "label": "Shadow across the item",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9672,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9889,
+          "color_shift": 2.23
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9911,
+          "color_shift": 0.66
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.978,
+          "color_shift": 0.77
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9867,
+          "color_shift": 0.39
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9963,
+          "color_shift": 0.52
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9894,
+          "color_shift": 0.52
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9672,
+          "color_shift": 1.45
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9738,
+          "color_shift": 0.22
+        }
+      ]
+    },
+    {
+      "condition": "glare",
+      "label": "Glare / reflection",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9563,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9765,
+          "color_shift": 0.96
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9831,
+          "color_shift": 0.36
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9563,
+          "color_shift": 0.32
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9763,
+          "color_shift": 0.23
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9886,
+          "color_shift": 0.12
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9912,
+          "color_shift": 0.28
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9966,
+          "color_shift": 0.24
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9943,
+          "color_shift": 0.15
+        }
+      ]
+    },
+    {
+      "condition": "glare",
+      "label": "Glare / reflection",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 7,
+        "sent_to_gemini": 1,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9233,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9577,
+          "color_shift": 1.4
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9699,
+          "color_shift": 0.55
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9233,
+          "color_shift": 0.42
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9363,
+          "color_shift": 0.24
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9706,
+          "color_shift": 0.41
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9738,
+          "color_shift": 0.4
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.991,
+          "color_shift": 0.21
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.993,
+          "color_shift": 0.18
+        }
+      ]
+    },
+    {
+      "condition": "blur",
+      "label": "Out of focus",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9835,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9932,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.993,
+          "color_shift": 0.13
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9835,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9921,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9956,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9929,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.991,
+          "color_shift": 0.15
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9924,
+          "color_shift": 0.06
+        }
+      ]
+    },
+    {
+      "condition": "blur",
+      "label": "Out of focus",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 4,
+        "fn": 0,
+        "tn": 4,
+        "precision": 0.9333,
+        "precision_ci": [
+          0.8407,
+          0.9738
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9459,
+        "false_flag_rate": 0.5,
+        "false_flag_ci": [
+          0.2152,
+          0.7848
+        ],
+        "implied_precision_at_15pct_fraud": 0.2609
+      },
+      "genuine_routing": {
+        "fast_accept": 4,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 4
+      },
+      "genuine_shape_min": 0.9314,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "RETAKE_REQUIRED",
+          "screen": "retake",
+          "shape_mean": null,
+          "color_shift": null
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9314,
+          "color_shift": 0.23
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "RETAKE_REQUIRED",
+          "screen": "retake",
+          "shape_mean": null,
+          "color_shift": null
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "RETAKE_REQUIRED",
+          "screen": "retake",
+          "shape_mean": null,
+          "color_shift": null
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9688,
+          "color_shift": 0.14
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9675,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "RETAKE_REQUIRED",
+          "screen": "retake",
+          "shape_mean": null,
+          "color_shift": null
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9322,
+          "color_shift": 0.09
+        }
+      ]
+    },
+    {
+      "condition": "motion_blur",
+      "label": "Camera shake",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9385,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9637,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9604,
+          "color_shift": 0.1
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9422,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9577,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9772,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9713,
+          "color_shift": 0.04
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9385,
+          "color_shift": 0.73
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9578,
+          "color_shift": 0.05
+        }
+      ]
+    },
+    {
+      "condition": "motion_blur",
+      "label": "Camera shake",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 2,
+        "sent_to_gemini": 6,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8885,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8982,
+          "color_shift": 0.16
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8885,
+          "color_shift": 0.21
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9011,
+          "color_shift": 0.16
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9089,
+          "color_shift": 0.12
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9333,
+          "color_shift": 0.13
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9244,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9147,
+          "color_shift": 0.56
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8927,
+          "color_shift": 0.11
+        }
+      ]
+    },
+    {
+      "condition": "noise",
+      "label": "Sensor noise (low light)",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9605,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9876,
+          "color_shift": 1.08
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9915,
+          "color_shift": 1.04
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9605,
+          "color_shift": 0.91
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9781,
+          "color_shift": 0.63
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9909,
+          "color_shift": 0.69
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9915,
+          "color_shift": 0.89
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9799,
+          "color_shift": 0.58
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9628,
+          "color_shift": 0.77
+        }
+      ]
+    },
+    {
+      "condition": "noise",
+      "label": "Sensor noise (low light)",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 6,
+        "sent_to_gemini": 2,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8085,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9607,
+          "color_shift": 2.3
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9655,
+          "color_shift": 1.95
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8085,
+          "color_shift": 2.38
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9432,
+          "color_shift": 2.95
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9603,
+          "color_shift": 1.19
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9579,
+          "color_shift": 1.15
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9523,
+          "color_shift": 2.07
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9046,
+          "color_shift": 2.28
+        }
+      ]
+    },
+    {
+      "condition": "jpeg",
+      "label": "Heavy JPEG compression",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9571,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9838,
+          "color_shift": 0.53
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9857,
+          "color_shift": 1.82
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9571,
+          "color_shift": 1.04
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9716,
+          "color_shift": 1.61
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9874,
+          "color_shift": 1.12
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9864,
+          "color_shift": 1.17
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9852,
+          "color_shift": 0.85
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9737,
+          "color_shift": 1.1
+        }
+      ]
+    },
+    {
+      "condition": "jpeg",
+      "label": "Heavy JPEG compression",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 8,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.875,
+        "precision_ci": [
+          0.7723,
+          0.9353
+        ],
+        "recall": 1.0,
+        "f0_5": 0.8974,
+        "false_flag_rate": 1.0,
+        "false_flag_ci": [
+          0.6756,
+          1
+        ],
+        "implied_precision_at_15pct_fraud": 0.15
+      },
+      "genuine_routing": {
+        "fast_accept": 0,
+        "sent_to_gemini": 8,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8159,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9232,
+          "color_shift": 6.23
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9285,
+          "color_shift": 3.88
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8159,
+          "color_shift": 2.52
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.898,
+          "color_shift": 3.66
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.868,
+          "color_shift": 2.73
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9059,
+          "color_shift": 3.0
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "REJECT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8328,
+          "color_shift": 5.0
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.9228,
+          "color_shift": 3.69
+        }
+      ]
+    },
+    {
+      "condition": "low_res",
+      "label": "Low resolution",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9848,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9978,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9979,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9848,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.997,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9982,
+          "color_shift": 0.07
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9978,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9963,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.996,
+          "color_shift": 0.02
+        }
+      ]
+    },
+    {
+      "condition": "low_res",
+      "label": "Low resolution",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 7,
+        "sent_to_gemini": 1,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8662,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9857,
+          "color_shift": 0.08
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9866,
+          "color_shift": 0.17
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9697,
+          "color_shift": 0.04
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9805,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9901,
+          "color_shift": 0.12
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9888,
+          "color_shift": 0.05
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8662,
+          "color_shift": 0.65
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9813,
+          "color_shift": 0.07
+        }
+      ]
+    },
+    {
+      "condition": "occlusion",
+      "label": "Finger covering part",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "tn": 7,
+        "precision": 0.9825,
+        "precision_ci": [
+          0.9071,
+          0.9969
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9859,
+        "false_flag_rate": 0.125,
+        "false_flag_ci": [
+          0.0224,
+          0.4709
+        ],
+        "implied_precision_at_15pct_fraud": 0.5854
+      },
+      "genuine_routing": {
+        "fast_accept": 3,
+        "sent_to_gemini": 5,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8559,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9585,
+          "color_shift": 0.22
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9347,
+          "color_shift": 0.58
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9148,
+          "color_shift": 0.71
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.917,
+          "color_shift": 0.56
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9159,
+          "color_shift": 0.29
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9313,
+          "color_shift": 0.54
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.9162,
+          "color_shift": 1.81
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8559,
+          "color_shift": 0.26
+        }
+      ]
+    },
+    {
+      "condition": "occlusion",
+      "label": "Finger covering part",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 2,
+        "fn": 0,
+        "tn": 6,
+        "precision": 0.9655,
+        "precision_ci": [
+          0.8827,
+          0.9905
+        ],
+        "recall": 1.0,
+        "f0_5": 0.9722,
+        "false_flag_rate": 0.25,
+        "false_flag_ci": [
+          0.0715,
+          0.5907
+        ],
+        "implied_precision_at_15pct_fraud": 0.4138
+      },
+      "genuine_routing": {
+        "fast_accept": 3,
+        "sent_to_gemini": 5,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.8435,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9493,
+          "color_shift": 0.7
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9546,
+          "color_shift": 0.57
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8435,
+          "color_shift": 1.39
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8919,
+          "color_shift": 0.45
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "HUMAN_REVIEW",
+          "screen": "ambiguous",
+          "shape_mean": 0.8517,
+          "color_shift": 0.56
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8743,
+          "color_shift": 1.74
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9271,
+          "color_shift": 0.91
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "ambiguous",
+          "shape_mean": 0.8858,
+          "color_shift": 0.69
+        }
+      ]
+    },
+    {
+      "condition": "background",
+      "label": "Different background",
+      "level": "mild",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9703,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9965,
+          "color_shift": 0.26
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9978,
+          "color_shift": 0.3
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.991,
+          "color_shift": 0.15
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9944,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9981,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9958,
+          "color_shift": 0.06
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9703,
+          "color_shift": 0.19
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9909,
+          "color_shift": 0.11
+        }
+      ]
+    },
+    {
+      "condition": "background",
+      "label": "Different background",
+      "level": "strong",
+      "genuine": 8,
+      "fraud": 56,
+      "local": {
+        "tp": 56,
+        "fp": 0,
+        "fn": 0,
+        "tn": 8,
+        "precision": 1.0,
+        "precision_ci": [
+          0.9358,
+          1
+        ],
+        "recall": 1.0,
+        "f0_5": 1.0,
+        "false_flag_rate": 0.0,
+        "false_flag_ci": [
+          0,
+          0.3244
+        ],
+        "implied_precision_at_15pct_fraud": 1.0
+      },
+      "genuine_routing": {
+        "fast_accept": 8,
+        "sent_to_gemini": 0,
+        "fast_reject": 0,
+        "retake": 0
+      },
+      "genuine_shape_min": 0.9876,
+      "genuine_pairs": [
+        {
+          "delivered": "speaker_A",
+          "returned": "speaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9971,
+          "color_shift": 0.04
+        },
+        {
+          "delivered": "speaker_B",
+          "returned": "speaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9981,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "shaker_A",
+          "returned": "shaker_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9924,
+          "color_shift": 0.03
+        },
+        {
+          "delivered": "shaker_B",
+          "returned": "shaker_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9952,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_A",
+          "returned": "bottle_A",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9981,
+          "color_shift": 0.02
+        },
+        {
+          "delivered": "bottle_B",
+          "returned": "bottle_B",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9971,
+          "color_shift": 0.01
+        },
+        {
+          "delivered": "headphones_blue",
+          "returned": "headphones_blue",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9876,
+          "color_shift": 0.21
+        },
+        {
+          "delivered": "headphones_black",
+          "returned": "headphones_black",
+          "decision": "ACCEPT",
+          "screen": "strong_match",
+          "shape_mean": 0.9924,
+          "color_shift": 0.02
+        }
+      ]
+    }
+  ],
+  "real_second_session": [
+    {
+      "item": "headphones_blue",
+      "decision": "HUMAN_REVIEW",
+      "screen": "ambiguous",
+      "shape_mean": 0.8345,
+      "color_shift": 2.87
+    },
+    {
+      "item": "headphones_black",
+      "decision": "ACCEPT",
+      "screen": "ambiguous",
+      "shape_mean": 0.9285,
+      "color_shift": 0.0
+    }
+  ],
+  "runtime_s": 1281
+}

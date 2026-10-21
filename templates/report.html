@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evidence Report #{{ ret.return_id }} · ReturnGuard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#16181d; --dim:#5b6170; --line:#e3e5ea; --soft:#f6f7f9; --ok:#13804b; --warn:#a15c00; --bad:#b4232c; --brand:#5b4be0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Geist,system-ui,sans-serif; color:var(--ink); background:#fff; font-size:14.5px; line-height:1.6; }
+  .page { max-width:920px; margin:0 auto; padding:40px 32px 64px; }
+  .mono { font-family:'Geist Mono',monospace; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; border-bottom:2px solid var(--ink); padding-bottom:16px; }
+  .brand { font-weight:700; font-size:18px; color:var(--brand); }
+  h1 { font-size:24px; margin-top:4px; }
+  h2 { font-size:17px; margin:34px 0 10px; }
+  .meta { text-align:right; color:var(--dim); font-size:13px; }
+  .verdict { margin-top:24px; padding:22px 24px; border-radius:12px; border:1px solid var(--line); display:flex; justify-content:space-between; gap:24px; align-items:center; }
+  .verdict.ACCEPT { background:#eefaf3; border-color:#bfe8d1; } .verdict.HUMAN_REVIEW, .verdict.RETAKE_REQUIRED { background:#fff7ea; border-color:#f3dcb3; }
+  .verdict.REJECT { background:#fdf0f0; border-color:#f2c9cb; }
+  .verdict .label { font-size:24px; font-weight:700; }
+  .ACCEPT .label { color:var(--ok); } .HUMAN_REVIEW .label, .RETAKE_REQUIRED .label { color:var(--warn); } .REJECT .label { color:var(--bad); }
+  .verdict .sentence { font-size:16px; font-weight:600; margin-top:4px; }
+  .verdict .reasons { color:var(--dim); margin-top:6px; }
+  .risk { text-align:right; min-width:150px; }
+  .risk .n { font-size:40px; font-weight:700; line-height:1; }
+  .risk .b { font-weight:600; margin-top:4px; }
+  .risk small { display:block; color:var(--dim); font-size:12px; }
+  p.story { font-size:15px; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; color:var(--dim); font-weight:600; background:var(--soft); }
+  .lvl { display:inline-block; min-width:22px; text-align:center; border-radius:6px; font-weight:700; font-size:12px; padding:1px 6px; margin-right:6px; }
+  .good, .ok { background:#e3f6ec; color:var(--ok); } .warn { background:#fdf0dc; color:var(--warn); } .bad { background:#fbe3e4; color:var(--bad); } .info { background:var(--soft); color:var(--dim); }
+  .result { font-weight:600; }
+  .value { color:var(--dim); font-size:13px; }
+  .gem { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+  .gem h3 { font-size:15px; display:flex; justify-content:space-between; gap:12px; }
+  .gem .st { font-size:12px; font-weight:600; color:var(--dim); }
+  .gem ul { margin:6px 0 0 18px; color:var(--dim); }
+  .views { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .view { border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .view .pair { display:grid; grid-template-columns:1fr 1fr; background:var(--soft); }
+  .view img { width:100%; height:150px; object-fit:contain; padding:6px; }
+  .view .cap { padding:8px 10px; font-size:12.5px; }
+  .tag { font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; padding:4px 8px; }
+  ul.steps { padding-left:20px; } ul.steps li { margin:4px 0; }
+  .appendix { margin-top:44px; border-top:1px solid var(--line); padding-top:8px; font-size:13px; }
+  .appendix h2 { font-size:14px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+  .w-pos { color:var(--bad); font-weight:600; } .w-neg { color:var(--ok); font-weight:600; }
+  .note { margin-top:28px; font-size:12px; color:var(--dim); }
+  .print { position:fixed; bottom:20px; right:20px; box-shadow:0 6px 18px rgba(0,0,0,.18); background:var(--brand); color:#fff; border:0; padding:8px 14px; border-radius:6px; font:600 13px Geist; cursor:pointer; }
+  @media print { .print { display:none; } .page { padding:0; } h2 { break-after:avoid; } .view, .gem { break-inside:avoid; } }
+  @media (max-width:700px) { .views { grid-template-columns:1fr; } header, .verdict { flex-direction:column; align-items:flex-start; } .meta, .risk { text-align:left; } }
+</style>
+</head>
+<body>
+<button class="print" onclick="window.print()">Save as PDF</button>
+<div class="page">
+  <header>
+    <div>
+      <div class="brand">ReturnGuard</div>
+      <h1>Return check report #{{ ret.return_id }}</h1>
+    </div>
+    <div class="meta">Order <span class="mono">#{{ order.order_id }}</span> · Customer <span class="mono">{{ order.customer_id }}</span><br>
+      Checked {{ (ret.completed_at or '')[:16].replace('T', ' ') }} UTC</div>
+  </header>
+
+  {% set d = r.decision %}
+  <div class="verdict {{ d.decision }}">
+    <div>
+      <div class="label">{{ {'ACCEPT':'Accepted','HUMAN_REVIEW':'Needs a human check','REJECT':'Rejected','RETAKE_REQUIRED':'Retake photos'}[d.decision] }}</div>
+      <div class="sentence">{{ x.decision.sentence }}</div>
+      {% if x.decision.reasons %}<div class="reasons">Main reasons: {{ x.decision.reasons|join(' · ') }}</div>{% endif %}
+    </div>
+    {% if d.risk_score is not none %}
+    <div class="risk"><div class="n mono">{{ d.risk_score }}<span style="font-size:16px;color:var(--dim)">/100</span></div>
+      <div class="b">{{ x.decision.risk_band.label }}</div>
+      <small>Approved automatically below {{ d.thresholds.accept_below }}, rejected from {{ d.thresholds.reject_from }}</small></div>
+    {% endif %}
+  </div>
+
+  <h2>What happened</h2>
+  <p class="story">
+    {{ order.product_name or 'The product' }} ({{ order.category.replace('_', ' & ') }}) was delivered on
+    {{ order.delivered_at[:10] }}. The delivery agent photographed it from the front, back and side at the door.
+    On {{ ret.created_at[:10] }} the customer asked to return it, giving the reason “{{ reasons.get(ret.reason, ret.reason) }}”,
+    and the returned item was photographed the same way. ReturnGuard compared the two sets of photos.
+  </p>
+
+  <h2>What we checked</h2>
+  <table>
+    <tr><th style="width:24%">Check</th><th style="width:30%">Result</th><th>What it means</th></tr>
+    {% for c in x.checks %}
+    <tr><td>{{ c.name }}</td>
+      <td><span class="lvl {{ c.level }}">{{ {'good':'✓','ok':'✓','warn':'!','bad':'✕'}.get(c.level, 'i') }}</span><span class="result">{{ c.verdict }}</span>
+        {% if c.value %}<div class="value">{{ c.value }}</div>{% endif %}</td>
+      <td>{{ c.detail }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Gemini's verdict</h2>
+  {% for g in x.gemini %}
+  <div class="gem">
+    <h3>{{ g.agent }} <span class="st">{{ {'ran':'Ran','unavailable':'Unavailable','not_needed':'Not needed'}.get(g.status, g.status) }}</span></h3>
+    {% if g.status == 'ran' %}<div class="result" style="margin-top:4px">{{ g.verdict }}</div>{% endif %}
+    {% if g.detail %}<div style="color:var(--dim);margin-top:2px">{{ g.detail }}</div>{% endif %}
+    {% if g.bullets %}<ul>{% for b in g.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+    {% if g.note %}<div style="color:var(--dim);font-style:italic;margin-top:4px">{{ g.note }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  <h2>Delivered vs returned photos</h2>
+  <div class="views">
+    {% for a in ['front','back','side'] %}
+    {% set v = x.views.get(a) %}
+    <div class="view">
+      <div class="pair"><div><div class="tag">Delivered</div><img src="{{ delivery[a].photo }}" alt="Delivered {{ a }}"></div>
+        <div><div class="tag">Returned</div><img src="{{ returned[a].photo }}" alt="Returned {{ a }}"></div></div>
+      <div class="cap"><strong>{{ a|capitalize }}</strong>{% if v %} · shape {{ v.shape }} ({{ v.shape_verdict|lower }}) · {{ v.colour_verdict|lower }}{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h2>Recommended next steps</h2>
+  <ul class="steps">{% for a in d.actions %}<li>{{ a }}</li>{% endfor %}</ul>
+
+  <div class="appendix">
+    <h2>Technical appendix</h2>
+    {% if x.evidence %}
+    <p style="color:var(--dim);margin-bottom:8px">How each finding moved the risk score (log-odds; positive = towards fraud). The total goes through a sigmoid to give the 0–100 score.</p>
+    <table>
+      <tr><th>Source</th><th>Finding</th><th>Effect</th><th style="text-align:right">Weight</th></tr>
+      {% for e in x.evidence %}
+      <tr><td>{{ e.source.replace('_',' ') }}</td><td>{{ e.finding }}</td><td>{{ e.effect }}</td>
+        <td class="mono {{ 'w-pos' if e.weight > 0 else 'w-neg' if e.weight < 0 else '' }}" style="text-align:right">{{ '%+.2f'|format(e.weight) }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+    {% if r.identity and r.identity.locations %}
+    <p style="color:var(--dim);margin:14px 0 8px">Label read at return (blind: Gemini was told where the label was, not what it said).</p>
+    <table>
+      <tr><th>Location</th><th>Recorded at delivery</th><th>Read at return</th><th>Result</th></tr>
+      {% for loc in r.identity.locations %}
+      <tr><td>{{ loc.location }} ({{ loc.view }})</td>
+        <td class="mono" style="font-size:12px">{% for t in (loc.expected or loc.checks|map(attribute='expected')|list) %}{{ t }}<br>{% endfor %}</td>
+        <td class="mono" style="font-size:12px">{{ loc.observed or '—' }}</td><td>{{ loc.status.replace('_',' ') }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+    <p style="color:var(--dim);margin-top:14px">Pipeline: {% for t in r.trace %}{{ t.node }} {{ t.ms }} ms{% if not loop.last %} → {% endif %}{% endfor %}.
+      Gemini calls: {{ r.llm_call_count }} ({{ r.llm_tokens }} tokens). Audit log entries: {{ audit|length }}.</p>
+  </div>
+
+  <p class="note">The risk score is an evidence-weighted score from 0 to 100, not a probability. ReturnGuard is decision
+  support: a person makes the final call on every flagged return, and this report is the evidence they review.</p>
+</div>
+</body>
+</html>

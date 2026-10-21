@@ -1,0 +1,2457 @@
+{
+  "generated_at": "2026-10-19T14:26:18+00:00",
+  "model": "gemini-2.5-flash",
+  "embedding_model": "facebook/dinov2-base",
+  "background_model": "u2net",
+  "positive_class": "fraud (returned item is not the delivered unit)",
+  "flagged_means": "HUMAN_REVIEW or REJECT (refund not auto-approved)",
+  "dataset": {
+    "pairs": 48,
+    "genuine": 18,
+    "fraud": 30,
+    "items": 6,
+    "pair_types": {
+      "same_item_recapture": 18,
+      "same_model_other_unit": 4,
+      "different_category": 24,
+      "same_category_other_model": 2
+    },
+    "note": "6 physical items. Genuine returns are simulated re-captures (the delivery photo, edited) except 0 real re-photographs from a separate photo session."
+  },
+  "thresholds": {
+    "fast_reject_shape": 0.6,
+    "fast_accept_shape": 0.92,
+    "fast_accept_min_view": 0.85,
+    "fast_accept_max_color_shift": 3.0,
+    "accept_below": 50,
+    "reject_from": 90
+  },
+  "real_recapture": [
+    {
+      "kind": "Simulated re-capture (same photo, edited)",
+      "pairs": 18,
+      "accepted": 18,
+      "flagged": 0
+    }
+  ],
+  "retakes": {
+    "count": 0,
+    "note": "Photo rejected by the quality gate; counted as flagged (conservative: it can only lower precision)."
+  },
+  "metrics": {
+    "tp": 28,
+    "fp": 0,
+    "fn": 2,
+    "tn": 18,
+    "precision": 1.0,
+    "recall": 0.9333,
+    "f1": 0.9655,
+    "f0_5": 0.9859,
+    "accuracy": 0.9583,
+    "false_rejection_rate": 0.0,
+    "precision_ci": [
+      0.8794,
+      1.0
+    ],
+    "recall_ci": [
+      0.7868,
+      0.9815
+    ],
+    "false_rejection_rate_ci": [
+      0.0,
+      0.1759
+    ]
+  },
+  "held_out": null,
+  "auto_reject_metrics": {
+    "tp": 28,
+    "fp": 0,
+    "fn": 2,
+    "tn": 18,
+    "precision": 1.0,
+    "recall": 0.9333,
+    "f1": 0.9655,
+    "f0_5": 0.9859,
+    "accuracy": 0.9583,
+    "false_rejection_rate": 0.0,
+    "precision_ci": [
+      0.8794,
+      1.0
+    ],
+    "recall_ci": [
+      0.7868,
+      0.9815
+    ],
+    "false_rejection_rate_ci": [
+      0.0,
+      0.1759
+    ]
+  },
+  "confusion": {
+    "genuine": {
+      "ACCEPT": 18
+    },
+    "fraud": {
+      "REJECT": 28,
+      "ACCEPT": 2
+    }
+  },
+  "by_pair_type": {
+    "same_item_recapture": {
+      "ACCEPT": 18
+    },
+    "same_model_other_unit": {
+      "REJECT": 2,
+      "ACCEPT": 2
+    },
+    "different_category": {
+      "REJECT": 24
+    },
+    "same_category_other_model": {
+      "REJECT": 2
+    }
+  },
+  "ablations": [
+    {
+      "name": "v1: original embedding gate",
+      "detail": "patch-mean incl. padding, flag if <= 0.94",
+      "llm_calls_per_return": null,
+      "auc": 1.0,
+      "tp": 30,
+      "fp": 3,
+      "fn": 0,
+      "tn": 15,
+      "precision": 0.9091,
+      "recall": 1.0,
+      "f1": 0.9524,
+      "f0_5": 0.9259,
+      "accuracy": 0.9375,
+      "false_rejection_rate": 0.1667,
+      "precision_ci": [
+        0.7643,
+        0.9686
+      ],
+      "recall_ci": [
+        0.8865,
+        1.0
+      ],
+      "false_rejection_rate_ci": [
+        0.0584,
+        0.3922
+      ]
+    },
+    {
+      "name": "v2: local evidence only",
+      "detail": "object-only DINOv2 + colour, no LLM",
+      "llm_calls_per_return": 0,
+      "auc": 1.0,
+      "tp": 30,
+      "fp": 0,
+      "fn": 0,
+      "tn": 18,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "f0_5": 1.0,
+      "accuracy": 1.0,
+      "false_rejection_rate": 0.0,
+      "precision_ci": [
+        0.8865,
+        1.0
+      ],
+      "recall_ci": [
+        0.8865,
+        1.0
+      ],
+      "false_rejection_rate_ci": [
+        0.0,
+        0.1759
+      ]
+    },
+    {
+      "name": "v2: full multi-agent pipeline",
+      "detail": "screen + identity agent + inspector + decision",
+      "llm_calls_per_return": 0.21,
+      "auc": null,
+      "tp": 28,
+      "fp": 0,
+      "fn": 2,
+      "tn": 18,
+      "precision": 1.0,
+      "recall": 0.9333,
+      "f1": 0.9655,
+      "f0_5": 0.9859,
+      "accuracy": 0.9583,
+      "false_rejection_rate": 0.0,
+      "precision_ci": [
+        0.8794,
+        1.0
+      ],
+      "recall_ci": [
+        0.7868,
+        0.9815
+      ],
+      "false_rejection_rate_ci": [
+        0.0,
+        0.1759
+      ]
+    }
+  ],
+  "agentic": {
+    "llm_calls_per_return": 0.21,
+    "v1_llm_calls_per_return_upper_bound": 4,
+    "decided_without_llm_pct": 79.2,
+    "llm_call_distribution": {
+      "0": 38,
+      "1": 10
+    },
+    "schema_valid_first_try_pct": 100.0,
+    "schema_valid_after_retries_pct": 100.0,
+    "total_retries": 0,
+    "agents": {
+      "identity_verify": {
+        "calls": 4,
+        "mean_latency_s": 13.1,
+        "mean_tokens": 3484
+      },
+      "visual_inspector": {
+        "calls": 6,
+        "mean_latency_s": 10.0,
+        "mean_tokens": 3411
+      },
+      "identity_fingerprint": {
+        "calls": 6,
+        "mean_latency_s": 6.0,
+        "mean_tokens": 1737
+      }
+    },
+    "identity_agent_accuracy": {
+      "runs": 4,
+      "correct": 4
+    },
+    "inspector_accuracy": {
+      "runs": 6,
+      "correct": 4
+    },
+    "tokens_per_return": 717,
+    "est_cost_usd_per_1000_returns": 1.05,
+    "latency_s_per_return": {
+      "mean": 3.6,
+      "p_max": 17.7
+    },
+    "routes": {
+      "intake > decide": 38,
+      "intake > inspector > decide": 6,
+      "intake > identity > decide": 4
+    }
+  },
+  "runtime_s": 1080,
+  "per_pair": [
+    {
+      "label": "same",
+      "pair_id": 1,
+      "delivery_item": "speaker_A",
+      "return_item": "speaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 0,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "identity",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "identity_verify",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 14.26,
+          "input_tokens": 1088,
+          "output_tokens": 2800,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9855,
+      "color_shift": 1.89,
+      "identity_outcome": "verified_unit",
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.14,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.9 \u0394E (consistent)"
+        },
+        {
+          "source": "identity_agent",
+          "weight": -3.0,
+          "finding": "Serial/batch number on the label matches the delivered unit"
+        }
+      ],
+      "latency_ms_est": 14980,
+      "v1_score": 0.9755
+    },
+    {
+      "label": "same",
+      "pair_id": 2,
+      "delivery_item": "speaker_A",
+      "return_item": "speaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 0,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "identity",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "identity_verify",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 13.26,
+          "input_tokens": 1088,
+          "output_tokens": 2437,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9877,
+      "color_shift": 2.4,
+      "identity_outcome": "verified_unit",
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.19,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.99)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.48,
+          "finding": "Colour shift 2.4 \u0394E (consistent)"
+        },
+        {
+          "source": "identity_agent",
+          "weight": -3.0,
+          "finding": "Serial/batch number on the label matches the delivered unit"
+        }
+      ],
+      "latency_ms_est": 13998,
+      "v1_score": 0.9877
+    },
+    {
+      "label": "same",
+      "pair_id": 3,
+      "delivery_item": "speaker_A",
+      "return_item": "speaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 0,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "identity",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "identity_verify",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 16.92,
+          "input_tokens": 1088,
+          "output_tokens": 3084,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9916,
+      "color_shift": 2.03,
+      "identity_outcome": "verified_unit",
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.29,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.99)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.92,
+          "finding": "Colour shift 2.0 \u0394E (consistent)"
+        },
+        {
+          "source": "identity_agent",
+          "weight": -3.0,
+          "finding": "Serial/batch number on the label matches the delivered unit"
+        }
+      ],
+      "latency_ms_est": 17662,
+      "v1_score": 0.9898
+    },
+    {
+      "label": "same",
+      "pair_id": 4,
+      "delivery_item": "speaker_B",
+      "return_item": "speaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 8,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.988,
+      "color_shift": 2.58,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.2,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.26,
+          "finding": "Colour shift 2.6 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 1010,
+      "v1_score": 0.9909
+    },
+    {
+      "label": "same",
+      "pair_id": 5,
+      "delivery_item": "speaker_B",
+      "return_item": "speaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 4,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9868,
+      "color_shift": 1.44,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.17,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.4 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 729,
+      "v1_score": 0.9855
+    },
+    {
+      "label": "same",
+      "pair_id": 6,
+      "delivery_item": "speaker_B",
+      "return_item": "speaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 4,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.986,
+      "color_shift": 1.06,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.15,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.1 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 656,
+      "v1_score": 0.9841
+    },
+    {
+      "label": "same",
+      "pair_id": 7,
+      "delivery_item": "shaker_A",
+      "return_item": "shaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 1,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 14.35,
+          "input_tokens": 1934,
+          "output_tokens": 1979,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.8859,
+      "color_shift": 1.19,
+      "identity_outcome": null,
+      "inspector_overall": "same_unit",
+      "inspector_confidence": 90,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 0.35,
+          "finding": "Shape similarity 0.89 across 3 views (lowest view 0.70)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.2 \u0394E (consistent)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": -3.7,
+          "finding": "Inspector: same unit (90% confident)"
+        }
+      ],
+      "latency_ms_est": 14909,
+      "v1_score": 0.9335
+    },
+    {
+      "label": "same",
+      "pair_id": 8,
+      "delivery_item": "shaker_A",
+      "return_item": "shaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9799,
+      "color_shift": 1.23,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.0,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.97)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.2 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 658,
+      "v1_score": 0.9745
+    },
+    {
+      "label": "same",
+      "pair_id": 9,
+      "delivery_item": "shaker_A",
+      "return_item": "shaker_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9749,
+      "color_shift": 1.22,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -1.87,
+          "finding": "Shape similarity 0.97 across 3 views (lowest view 0.97)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.2 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 643,
+      "v1_score": 0.9368
+    },
+    {
+      "label": "same",
+      "pair_id": 10,
+      "delivery_item": "shaker_B",
+      "return_item": "shaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 7,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9799,
+      "color_shift": 2.31,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.0,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.59,
+          "finding": "Colour shift 2.3 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 687,
+      "v1_score": 0.9674
+    },
+    {
+      "label": "same",
+      "pair_id": 11,
+      "delivery_item": "shaker_B",
+      "return_item": "shaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9781,
+      "color_shift": 1.75,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -1.95,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.96)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.8 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 639,
+      "v1_score": 0.9777
+    },
+    {
+      "label": "same",
+      "pair_id": 12,
+      "delivery_item": "shaker_B",
+      "return_item": "shaker_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 4,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9829,
+      "color_shift": 1.64,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.07,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.97)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.6 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 616,
+      "v1_score": 0.9795
+    },
+    {
+      "label": "same",
+      "pair_id": 13,
+      "delivery_item": "bottle_A",
+      "return_item": "bottle_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 6,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9712,
+      "color_shift": 1.29,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -1.78,
+          "finding": "Shape similarity 0.97 across 3 views (lowest view 0.95)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.3 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 674,
+      "v1_score": 0.9307
+    },
+    {
+      "label": "same",
+      "pair_id": 14,
+      "delivery_item": "bottle_A",
+      "return_item": "bottle_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9893,
+      "color_shift": 2.14,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.23,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.79,
+          "finding": "Colour shift 2.1 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 827,
+      "v1_score": 0.9845
+    },
+    {
+      "label": "same",
+      "pair_id": 15,
+      "delivery_item": "bottle_A",
+      "return_item": "bottle_A",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9794,
+      "color_shift": 1.64,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -1.99,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.96)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.6 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 717,
+      "v1_score": 0.97
+    },
+    {
+      "label": "same",
+      "pair_id": 16,
+      "delivery_item": "bottle_B",
+      "return_item": "bottle_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 4,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9853,
+      "color_shift": 2.01,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.13,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.95,
+          "finding": "Colour shift 2.0 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 720,
+      "v1_score": 0.9826
+    },
+    {
+      "label": "same",
+      "pair_id": 17,
+      "delivery_item": "bottle_B",
+      "return_item": "bottle_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 7,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9883,
+      "color_shift": 2.48,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -2.21,
+          "finding": "Shape similarity 0.99 across 3 views (lowest view 0.98)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.38,
+          "finding": "Colour shift 2.5 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 773,
+      "v1_score": 0.9767
+    },
+    {
+      "label": "same",
+      "pair_id": 18,
+      "delivery_item": "bottle_B",
+      "return_item": "bottle_B",
+      "pair_type": "same_item_recapture",
+      "is_fraud": false,
+      "decision": "ACCEPT",
+      "risk_score": 5,
+      "fraud_type": null,
+      "local_only_decision": "ACCEPT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "strong_match",
+      "shape_mean": 0.9759,
+      "color_shift": 1.57,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": -1.9,
+          "finding": "Shape similarity 0.98 across 3 views (lowest view 0.97)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.6 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 777,
+      "v1_score": 0.9722
+    },
+    {
+      "label": "different",
+      "pair_id": 1,
+      "delivery_item": "speaker_A",
+      "return_item": "speaker_B",
+      "pair_type": "same_model_other_unit",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "label_removed",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "identity",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "identity_verify",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 7.92,
+          "input_tokens": 1088,
+          "output_tokens": 1261,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.8523,
+      "color_shift": 3.86,
+      "identity_outcome": "label_missing",
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 1.19,
+          "finding": "Shape similarity 0.85 across 3 views (lowest view 0.77)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 1.27,
+          "finding": "Colour shift 3.9 \u0394E (product colour differs)"
+        },
+        {
+          "source": "identity_agent",
+          "weight": 4.0,
+          "finding": "The label recorded at delivery is missing from the returned item"
+        }
+      ],
+      "latency_ms_est": 8697,
+      "v1_score": 0.8771
+    },
+    {
+      "label": "different",
+      "pair_id": 2,
+      "delivery_item": "speaker_A",
+      "return_item": "shaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.453,
+      "color_shift": 7.73,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.45)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 7.7 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 827,
+      "v1_score": 0.4181
+    },
+    {
+      "label": "different",
+      "pair_id": 3,
+      "delivery_item": "speaker_A",
+      "return_item": "shaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3985,
+      "color_shift": 4.25,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.40)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 1.74,
+          "finding": "Colour shift 4.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 895,
+      "v1_score": 0.397
+    },
+    {
+      "label": "different",
+      "pair_id": 4,
+      "delivery_item": "speaker_A",
+      "return_item": "bottle_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3802,
+      "color_shift": 9.88,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.38)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 9.9 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 939,
+      "v1_score": 0.349
+    },
+    {
+      "label": "different",
+      "pair_id": 5,
+      "delivery_item": "speaker_A",
+      "return_item": "bottle_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4436,
+      "color_shift": 8.23,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.44)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 8.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 975,
+      "v1_score": 0.4023
+    },
+    {
+      "label": "different",
+      "pair_id": 6,
+      "delivery_item": "speaker_B",
+      "return_item": "speaker_A",
+      "pair_type": "same_model_other_unit",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 10.05,
+          "input_tokens": 2041,
+          "output_tokens": 1567,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.8496,
+      "color_shift": 3.91,
+      "identity_outcome": null,
+      "inspector_overall": "different_unit",
+      "inspector_confidence": 100,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 1.26,
+          "finding": "Shape similarity 0.85 across 3 views (lowest view 0.78)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 1.33,
+          "finding": "Colour shift 3.9 \u0394E (product colour differs)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": 5.0,
+          "finding": "Inspector: different unit (100% confident)"
+        }
+      ],
+      "latency_ms_est": 11053,
+      "v1_score": 0.8416
+    },
+    {
+      "label": "different",
+      "pair_id": 7,
+      "delivery_item": "speaker_B",
+      "return_item": "shaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4304,
+      "color_shift": 3.38,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.43)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 0.7,
+          "finding": "Colour shift 3.4 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1071,
+      "v1_score": 0.4013
+    },
+    {
+      "label": "different",
+      "pair_id": 8,
+      "delivery_item": "speaker_B",
+      "return_item": "shaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 99,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4254,
+      "color_shift": 1.17,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.43)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.2 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 989,
+      "v1_score": 0.3685
+    },
+    {
+      "label": "different",
+      "pair_id": 9,
+      "delivery_item": "speaker_B",
+      "return_item": "bottle_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3732,
+      "color_shift": 4.87,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.37)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.48,
+          "finding": "Colour shift 4.9 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 981,
+      "v1_score": 0.3568
+    },
+    {
+      "label": "different",
+      "pair_id": 10,
+      "delivery_item": "speaker_B",
+      "return_item": "bottle_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4123,
+      "color_shift": 4.81,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.41)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.41,
+          "finding": "Colour shift 4.8 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1101,
+      "v1_score": 0.3514
+    },
+    {
+      "label": "different",
+      "pair_id": 11,
+      "delivery_item": "shaker_A",
+      "return_item": "speaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.448,
+      "color_shift": 8.23,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.45)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 8.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1319,
+      "v1_score": 0.4033
+    },
+    {
+      "label": "different",
+      "pair_id": 12,
+      "delivery_item": "shaker_A",
+      "return_item": "speaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4445,
+      "color_shift": 2.72,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.44)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.1,
+          "finding": "Colour shift 2.7 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 1505,
+      "v1_score": 0.3848
+    },
+    {
+      "label": "different",
+      "pair_id": 13,
+      "delivery_item": "shaker_A",
+      "return_item": "shaker_B",
+      "pair_type": "same_category_other_model",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 9.45,
+          "input_tokens": 1934,
+          "output_tokens": 1508,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.7203,
+      "color_shift": 1.35,
+      "identity_outcome": null,
+      "inspector_overall": "different_unit",
+      "inspector_confidence": 100,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 4.0,
+          "finding": "Shape similarity 0.72 across 3 views (lowest view 0.58)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.4 \u0394E (consistent)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": 5.0,
+          "finding": "Inspector: different unit (100% confident)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": 1.0,
+          "finding": "Photos do not support the customer's stated return reason"
+        }
+      ],
+      "latency_ms_est": 10917,
+      "v1_score": 0.7667
+    },
+    {
+      "label": "different",
+      "pair_id": 14,
+      "delivery_item": "shaker_A",
+      "return_item": "bottle_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3829,
+      "color_shift": 3.16,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.38)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 0.43,
+          "finding": "Colour shift 3.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1626,
+      "v1_score": 0.6078
+    },
+    {
+      "label": "different",
+      "pair_id": 15,
+      "delivery_item": "shaker_A",
+      "return_item": "bottle_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4802,
+      "color_shift": 3.35,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.48)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 0.66,
+          "finding": "Colour shift 3.4 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1637,
+      "v1_score": 0.6744
+    },
+    {
+      "label": "different",
+      "pair_id": 16,
+      "delivery_item": "shaker_B",
+      "return_item": "speaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4114,
+      "color_shift": 4.2,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.41)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 1.68,
+          "finding": "Colour shift 4.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1786,
+      "v1_score": 0.3966
+    },
+    {
+      "label": "different",
+      "pair_id": 17,
+      "delivery_item": "shaker_B",
+      "return_item": "speaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4202,
+      "color_shift": 2.32,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.42)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.58,
+          "finding": "Colour shift 2.3 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 1829,
+      "v1_score": 0.3885
+    },
+    {
+      "label": "different",
+      "pair_id": 18,
+      "delivery_item": "shaker_B",
+      "return_item": "shaker_A",
+      "pair_type": "same_category_other_model",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 8.87,
+          "input_tokens": 1929,
+          "output_tokens": 1043,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.7357,
+      "color_shift": 3.3,
+      "identity_outcome": null,
+      "inspector_overall": "different_unit",
+      "inspector_confidence": 100,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 4.0,
+          "finding": "Shape similarity 0.74 across 3 views (lowest view 0.58)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 0.6,
+          "finding": "Colour shift 3.3 \u0394E (product colour differs)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": 5.0,
+          "finding": "Inspector: different unit (100% confident)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": 1.0,
+          "finding": "Photos do not support the customer's stated return reason"
+        }
+      ],
+      "latency_ms_est": 10643,
+      "v1_score": 0.6739
+    },
+    {
+      "label": "different",
+      "pair_id": 19,
+      "delivery_item": "shaker_B",
+      "return_item": "bottle_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4112,
+      "color_shift": 5.56,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.41)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 5.6 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1771,
+      "v1_score": 0.5813
+    },
+    {
+      "label": "different",
+      "pair_id": 20,
+      "delivery_item": "shaker_B",
+      "return_item": "bottle_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.5291,
+      "color_shift": 9.44,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.53)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 9.4 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 2101,
+      "v1_score": 0.6453
+    },
+    {
+      "label": "different",
+      "pair_id": 21,
+      "delivery_item": "bottle_A",
+      "return_item": "speaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3717,
+      "color_shift": 9.05,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.37)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 9.1 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 2652,
+      "v1_score": 0.3761
+    },
+    {
+      "label": "different",
+      "pair_id": 22,
+      "delivery_item": "bottle_A",
+      "return_item": "speaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3963,
+      "color_shift": 5.16,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.40)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 5.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 2329,
+      "v1_score": 0.3921
+    },
+    {
+      "label": "different",
+      "pair_id": 23,
+      "delivery_item": "bottle_A",
+      "return_item": "shaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 99,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.3696,
+      "color_shift": 1.78,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.37)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -1.0,
+          "finding": "Colour shift 1.8 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 2621,
+      "v1_score": 0.4702
+    },
+    {
+      "label": "different",
+      "pair_id": 24,
+      "delivery_item": "bottle_A",
+      "return_item": "shaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4302,
+      "color_shift": 4.63,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.43)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.2,
+          "finding": "Colour shift 4.6 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 2913,
+      "v1_score": 0.5102
+    },
+    {
+      "label": "different",
+      "pair_id": 25,
+      "delivery_item": "bottle_A",
+      "return_item": "bottle_B",
+      "pair_type": "same_model_other_unit",
+      "is_fraud": true,
+      "decision": "ACCEPT",
+      "risk_score": 27,
+      "fraud_type": null,
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 11.05,
+          "input_tokens": 1954,
+          "output_tokens": 1818,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.7612,
+      "color_shift": 2.29,
+      "identity_outcome": null,
+      "inspector_overall": "same_unit",
+      "inspector_confidence": 95,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 3.47,
+          "finding": "Shape similarity 0.76 across 3 views (lowest view 0.69)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.61,
+          "finding": "Colour shift 2.3 \u0394E (consistent)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": -3.85,
+          "finding": "Inspector: same unit (95% confident)"
+        }
+      ],
+      "latency_ms_est": 13970,
+      "v1_score": 0.7687
+    },
+    {
+      "label": "different",
+      "pair_id": 26,
+      "delivery_item": "bottle_B",
+      "return_item": "speaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4317,
+      "color_shift": 9.05,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.43)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 9.1 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 2107,
+      "v1_score": 0.4223
+    },
+    {
+      "label": "different",
+      "pair_id": 27,
+      "delivery_item": "bottle_B",
+      "return_item": "speaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4178,
+      "color_shift": 5.18,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.42)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 2.5,
+          "finding": "Colour shift 5.2 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1820,
+      "v1_score": 0.3795
+    },
+    {
+      "label": "different",
+      "pair_id": 28,
+      "delivery_item": "bottle_B",
+      "return_item": "shaker_A",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.4669,
+      "color_shift": 2.7,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.47)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.12,
+          "finding": "Colour shift 2.7 \u0394E (consistent)"
+        }
+      ],
+      "latency_ms_est": 1756,
+      "v1_score": 0.6309
+    },
+    {
+      "label": "different",
+      "pair_id": 29,
+      "delivery_item": "bottle_B",
+      "return_item": "shaker_B",
+      "pair_type": "different_category",
+      "is_fraud": true,
+      "decision": "REJECT",
+      "risk_score": 100,
+      "fraud_type": "substitution",
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "decide"
+      ],
+      "llm_calls": [],
+      "llm_call_count": 0,
+      "screen_verdict": "clear_mismatch",
+      "shape_mean": 0.5227,
+      "color_shift": 3.7,
+      "identity_outcome": null,
+      "inspector_overall": null,
+      "inspector_confidence": null,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 6.0,
+          "finding": "Returned object does not look like the delivered product (shape similarity 0.52)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": 1.08,
+          "finding": "Colour shift 3.7 \u0394E (product colour differs)"
+        }
+      ],
+      "latency_ms_est": 1653,
+      "v1_score": 0.6717
+    },
+    {
+      "label": "different",
+      "pair_id": 30,
+      "delivery_item": "bottle_B",
+      "return_item": "bottle_A",
+      "pair_type": "same_model_other_unit",
+      "is_fraud": true,
+      "decision": "ACCEPT",
+      "risk_score": 27,
+      "fraud_type": null,
+      "local_only_decision": "REJECT",
+      "route": [
+        "intake",
+        "history",
+        "policy",
+        "screen",
+        "triage",
+        "inspector",
+        "decide"
+      ],
+      "llm_calls": [
+        {
+          "agent": "visual_inspector",
+          "model": "gemini-2.5-flash",
+          "ok": true,
+          "cached": true,
+          "attempts": 1,
+          "latency_s": 6.36,
+          "input_tokens": 1931,
+          "output_tokens": 827,
+          "error": null
+        }
+      ],
+      "llm_call_count": 1,
+      "screen_verdict": "ambiguous",
+      "shape_mean": 0.7581,
+      "color_shift": 2.23,
+      "identity_outcome": null,
+      "inspector_overall": "same_unit",
+      "inspector_confidence": 95,
+      "evidence": [
+        {
+          "source": "visual_screen",
+          "weight": 3.55,
+          "finding": "Shape similarity 0.76 across 3 views (lowest view 0.67)"
+        },
+        {
+          "source": "visual_screen",
+          "weight": -0.68,
+          "finding": "Colour shift 2.2 \u0394E (consistent)"
+        },
+        {
+          "source": "visual_inspector",
+          "weight": -3.85,
+          "finding": "Inspector: same unit (95% confident)"
+        }
+      ],
+      "latency_ms_est": 7919,
+      "v1_score": 0.7763
+    }
+  ]
+}

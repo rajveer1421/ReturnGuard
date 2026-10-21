@@ -1,707 +1,745 @@
-/* ═══════════════════════════════════════════════════════════════
-   ReturnGuard — Frontend Application Logic
-   ═══════════════════════════════════════════════════════════════ */
-
+/* ReturnGuard UI: hash router, forms, live pipeline view, dashboard, evaluation, hero animation. */
 'use strict';
 
-// ── State ──────────────────────────────────────────────────────
-let currentSection = 'home';
-let pipelineTimer  = null;
-let currentPipelineStage = 0;
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const ANGLES = ['front', 'back', 'side'];
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (x, d = 1) => (x == null || isNaN(x)) ? '—' : (x * 100).toFixed(d) + '%';
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } },
+};
 
-// ── Navigation ─────────────────────────────────────────────────
-function showSection(id) {
-    document.querySelectorAll('.page-section').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none';
+const VERDICT = {
+  ACCEPT: 'Accepted', HUMAN_REVIEW: 'Human review', REJECT: 'Rejected',
+  RETAKE_REQUIRED: 'Retake photos', ERROR: 'Error', PROCESSING: 'Processing',
+};
+const FRAUD_LABEL = {
+  substitution: 'Product substitution', label_removed: 'Label removed / unit swap', wardrobing: 'Wardrobing (worn and returned)',
+  false_damage_claim: 'False damage claim', damage_after_delivery: 'Damaged after delivery',
+};
+const NODES = [
+  ['intake', 'Intake', 'Background removal, quality gate, features'],
+  ['policy', 'Policy agent', 'Return window and category rules'],
+  ['history', 'Customer history agent', 'Prior returns set the cut-offs'],
+  ['screen', 'Visual screen', 'Object-only DINOv2 + colour, no LLM'],
+  ['triage', 'Triage router', 'Fast path, or call an agent?'],
+  ['identity', 'Identity agent', 'Blind label read, compared in code', true],
+  ['inspector', 'Visual inspector', 'Six photos, independent verdict', true],
+  ['decide', 'Decision agent', 'Evidence-weighted risk score'],
+];
+
+/* ── API ─────────────────────────────────────────────────────────────── */
+async function api(url, opts) {
+  const res = await fetch(url, opts);
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* non-JSON error page */ }
+  if (!res.ok || data.success === false) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+/* ── toast / busy ────────────────────────────────────────────────────── */
+let toastTimer;
+function toast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
+}
+function busy(on, title = '', sub = '') {
+  $('#busy').classList.toggle('show', on);
+  if (on) { $('#busy-title').textContent = title; $('#busy-sub').textContent = sub; }
+}
+
+/* ── theme ───────────────────────────────────────────────────────────── */
+function initTheme() {
+  const apply = t => {
+    document.documentElement.setAttribute('data-theme', t);
+    $('.i-sun').classList.toggle('hidden', t === 'light');
+    $('.i-moon').classList.toggle('hidden', t !== 'light');
+  };
+  apply(document.documentElement.getAttribute('data-theme') || 'dark');
+  $('#theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    apply(next);
+    store.set('rg-theme', next);
+  });
+}
+
+/* ── router ──────────────────────────────────────────────────────────── */
+const PAGES = ['home', 'deliver', 'return', 'result', 'dashboard', 'evaluation', 'architecture', 'about', 'account'];
+let pollTimer = null;
+let lastPage = null;
+
+function route() {
+  const [page, arg] = location.hash.replace(/^#/, '').split('/');
+  const name = PAGES.includes(page) ? page : 'home';
+  // after signing in, go back to the page that asked for it
+  if (name === 'account' && ['deliver', 'return', 'dashboard'].includes(lastPage)) store.set('rg-after-signin', `#${lastPage}`);
+  lastPage = name;
+  $$('.page').forEach(p => p.classList.toggle('active', p.id === `page-${name}`));
+  $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === (name === 'result' ? 'return' : name)));
+  $('#mobile-nav').classList.remove('open');
+  window.scrollTo(0, 0);
+  clearTimeout(pollTimer);
+  scene.setVisible(name === 'home');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'evaluation') loadEvaluation();
+  if (name === 'return') prefillReturn();
+  if (name === 'deliver' || name === 'return') refreshMe();
+  if (name === 'account') loadAccount();
+  if (name === 'result' && /^\d+$/.test(arg || '')) openResult(Number(arg));
+}
+
+/* ── uploads & samples ───────────────────────────────────────────────── */
+function setPreview(zone, file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  zone.querySelector('img.preview')?.remove();
+  zone.querySelector('.u-tag')?.remove();
+  const img = document.createElement('img');
+  img.className = 'preview';
+  img.alt = '';
+  img.src = URL.createObjectURL(file);
+  zone.prepend(img);
+  const tag = document.createElement('span');
+  tag.className = 'u-tag';
+  tag.textContent = zone.querySelector('.u-label').textContent;
+  zone.append(tag);
+  zone.classList.add('has-file');
+}
+function clearPreviews(form) {
+  $$('.upload', form).forEach(z => { z.classList.remove('has-file'); z.querySelector('img.preview')?.remove(); z.querySelector('.u-tag')?.remove(); });
+}
+function initUploads() {
+  $$('.upload').forEach(zone => {
+    const input = $('input', zone);
+    input.addEventListener('change', () => setPreview(zone, input.files[0]));
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      const dt = new DataTransfer();
+      dt.items.add(f);
+      input.files = dt.files;
+      setPreview(zone, f);
     });
-
-    const section = document.getElementById(id);
-    if (!section) return;
-    section.style.display = 'block';
-    // small timeout so display:block takes effect before class (transition hook)
-    requestAnimationFrame(() => section.classList.add('active'));
-
-    // Nav active state — results is not in nav so clear all
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    const link = document.querySelector(`.nav-link[data-section="${id}"]`);
-    if (link) link.classList.add('active');
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    currentSection = id;
-
-    // Load data when entering dashboard
-    if (id === 'dashboard') loadOrders();
+  });
 }
-
-function initNavigation() {
-    document.querySelectorAll('.nav-link').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const section = btn.dataset.section;
-            if (section) {
-                showSection(section);
-                // close mobile nav
-                document.getElementById('mobile-nav').classList.remove('open');
-            }
-        });
-    });
-
-    const mobileBtn = document.getElementById('mobile-menu-btn');
-    const mobileNav = document.getElementById('mobile-nav');
-    if (mobileBtn && mobileNav) {
-        mobileBtn.addEventListener('click', () => mobileNav.classList.toggle('open'));
+async function loadSample(set, formId) {
+  const form = document.getElementById(formId);
+  try {
+    for (const a of ANGLES) {
+      const blob = await (await fetch(`/static/samples/${set}_${a}.jpg`)).blob();
+      const file = new File([blob], `${set}_${a}.jpg`, { type: 'image/jpeg' });
+      const input = $(`input[name="${a}_image"]`, form);
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      setPreview(input.closest('.upload'), file);
     }
-}
-
-// ── Flash Messages ──────────────────────────────────────────────
-function showFlash(type, msg) {
-    const el   = document.getElementById(`flash-${type}`);
-    const text = document.getElementById(`flash-${type}-text`);
-    if (!el || !text) return;
-    text.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 4500);
-}
-
-// ── Processing Overlay ──────────────────────────────────────────
-function showProcessing(mode = 'return') {
-    const overlay = document.getElementById('processing-overlay');
-    const stages  = document.getElementById('pipeline-stages');
-
-    resetPipelineStages();
-
-    if (mode === 'delivery') {
-        document.getElementById('processing-title').textContent = 'Registering Delivery';
-        document.getElementById('processing-sub').textContent   = 'Removing background and generating DINOv2 embeddings…';
-        if (stages) stages.style.display = 'none';
-    } else {
-        document.getElementById('processing-title').textContent = 'Analyzing Return';
-        document.getElementById('processing-sub').textContent   = 'Running the fraud detection pipeline…';
-        if (stages) stages.style.display = 'flex';
-        startPipelineAnimation();
+    if (formId === 'delivery-form') {
+      $('#d-product').value = 'Portronics SoundDrum 1 speaker (blue)';
+      $('#d-category').value = 'electronics';
     }
-
-    overlay.classList.add('active');
+    toast('Sample photos loaded. Submit when ready.', 'success');
+  } catch (e) {
+    toast('Could not load the sample photos.', 'error');
+  }
+}
+function initSamples() {
+  $$('[data-load]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); loadSample(b.dataset.load, b.dataset.form); }));
+  $$('[data-sample]').forEach(a => a.addEventListener('click', () => setTimeout(() => loadSample(a.dataset.sample, 'delivery-form'), 60)));
 }
 
-function hideProcessing() {
-    const overlay = document.getElementById('processing-overlay');
-    overlay.classList.remove('active');
-    clearPipelineAnimation();
-}
-
-function resetPipelineStages() {
-    document.querySelectorAll('.stage').forEach(s => {
-        s.classList.remove('active', 'done');
-        const dot = s.querySelector('.stage-dot');
-        if (dot) { dot.className = 'stage-dot pending'; }
-        const span = s.querySelector('span');
-        if (span) span.style.textDecoration = '';
-    });
-    currentPipelineStage = 0;
-}
-
-const STAGE_DURATIONS = [3000, 5000, 3000, 20000, 8000, 2000]; // ms per stage
-
-function startPipelineAnimation() {
-    advanceStage(0);
-}
-
-function advanceStage(index) {
-    const stages = document.querySelectorAll('.stage');
-    if (index >= stages.length) return;
-
-    // Mark previous done
-    if (index > 0) {
-        const prev = stages[index - 1];
-        prev.classList.remove('active');
-        prev.classList.add('done');
-        const prevDot = prev.querySelector('.stage-dot');
-        if (prevDot) prevDot.className = 'stage-dot done';
-    }
-
-    // Activate current
-    const cur = stages[index];
-    cur.classList.add('active');
-    const dot = cur.querySelector('.stage-dot');
-    if (dot) dot.className = 'stage-dot running';
-
-    currentPipelineStage = index;
-
-    pipelineTimer = setTimeout(() => {
-        advanceStage(index + 1);
-    }, STAGE_DURATIONS[index] || 5000);
-}
-
-function clearPipelineAnimation() {
-    if (pipelineTimer) {
-        clearTimeout(pipelineTimer);
-        pipelineTimer = null;
-    }
-}
-
-// ── Upload Zones ───────────────────────────────────────────────
-function initUploadZones() {
-    document.querySelectorAll('.upload-zone').forEach(zone => {
-        const input = zone.querySelector('input[type="file"]');
-        if (!input) return;
-
-        input.addEventListener('change', () => {
-            if (input.files && input.files[0]) {
-                showFilePreview(zone, input.files[0]);
-            }
-        });
-
-        zone.addEventListener('dragover', e => {
-            e.preventDefault();
-            zone.classList.add('drag-over');
-        });
-        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-        zone.addEventListener('drop', e => {
-            e.preventDefault();
-            zone.classList.remove('drag-over');
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                const dt = new DataTransfer();
-                dt.items.add(e.dataTransfer.files[0]);
-                input.files = dt.files;
-                showFilePreview(zone, e.dataTransfer.files[0]);
-            }
-        });
-    });
-}
-
-function showFilePreview(zone, file) {
-    if (!file.type.startsWith('image/')) return;
-
-    // Remove old preview if any
-    const old = zone.querySelector('.preview-img');
-    if (old) old.remove();
-    const oldOverlay = zone.querySelector('.preview-overlay');
-    if (oldOverlay) oldOverlay.remove();
-
-    const reader = new FileReader();
-    reader.onload = e => {
-        const img = document.createElement('img');
-        img.className = 'preview-img';
-        img.src = e.target.result;
-        img.alt = 'Preview';
-        zone.prepend(img);
-
-        const overlay = document.createElement('div');
-        overlay.className = 'preview-overlay';
-        overlay.textContent = 'Click to replace';
-        zone.appendChild(overlay);
-
-        zone.classList.add('has-file');
-    };
-    reader.readAsDataURL(file);
-}
-
-// ── Delivery Form ──────────────────────────────────────────────
-function initDeliveryForm() {
-    const form = document.getElementById('delivery-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async e => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        showProcessing('delivery');
-
-        try {
-            const res  = await fetch('/submit_delivery_image', { method: 'POST', body: formData });
-            const data = await res.json();
-
-            hideProcessing();
-
-            if (!data.success) {
-                showFlash('error', data.error || 'Failed to register delivery.');
-                return;
-            }
-
-            // Show success block
-            document.getElementById('delivery-order-id-display').textContent = data.order_id;
-            document.getElementById('delivery-success').style.display = 'flex';
-            showFlash('success', `Delivery registered. Order ID: ${data.order_id}`);
-            form.reset();
-            // Clear previews
-            document.querySelectorAll('#register .upload-zone').forEach(z => {
-                z.classList.remove('has-file');
-                const img = z.querySelector('.preview-img');
-                if (img) img.remove();
-                const ov = z.querySelector('.preview-overlay');
-                if (ov) ov.remove();
-            });
-
-        } catch (err) {
-            hideProcessing();
-            showFlash('error', 'Network error — could not reach server.');
-        }
-    });
-}
-
-// ── Return Form ────────────────────────────────────────────────
-function initReturnForm() {
-    const form = document.getElementById('return-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async e => {
-        e.preventDefault();
-
-        const orderId = document.getElementById('return-order-id').value.trim();
-        if (!orderId) { showFlash('error', 'Order ID is required.'); return; }
-
-        const formData = new FormData(form);
-        formData.set('order_id', orderId);
-
-        showProcessing('return');
-
-        try {
-            const res  = await fetch('/submit_return_images', { method: 'POST', body: formData });
-            const data = await res.json();
-
-            hideProcessing();
-
-            if (!data.success) {
-                showFlash('error', data.error || 'Failed to process return.');
-                return;
-            }
-
-            displayResults(data);
-            showSection('results');
-
-        } catch (err) {
-            hideProcessing();
-            showFlash('error', 'Network error — pipeline call failed. Check the server is running.');
-        }
-    });
-}
-
-// ── Results Display ────────────────────────────────────────────
-function displayResults(data) {
-    const status = data.status || 'Unknown';
-
-    // ── Verdict banner ──
-    const banner = document.getElementById('verdict-banner');
-    const labelEl = document.getElementById('verdict-label');
-    const subEl   = document.getElementById('verdict-sub');
-    const orderEl = document.getElementById('verdict-order-label');
-
-    banner.classList.remove('v-accepted', 'v-review', 'v-rejected');
-
-    const statusLower = status.toLowerCase();
-    let bannerClass, verdictText, verdictSub;
-
-    if (statusLower.includes('accepted')) {
-        bannerClass = 'v-accepted';
-        verdictText = statusLower.includes('vlm') ? 'VLM Accepted' : 'Return Accepted';
-        verdictSub  = statusLower.includes('vlm')
-            ? 'VLM agents confirmed the product matches. Refund can proceed.'
-            : 'Embedding similarity was conclusive — no VLM review required. Refund can proceed.';
-    } else if (statusLower.includes('human') || statusLower.includes('review')) {
-        bannerClass = 'v-review';
-        verdictText = 'Human Review Required';
-        verdictSub  = 'VLM agents reached ambiguous conclusions. Full evidence packaged for human review.';
-    } else {
-        bannerClass = 'v-rejected';
-        verdictText = 'Return Rejected';
-        verdictSub  = 'Multiple VLM agents identified product-specific discrepancies. Refund blocked.';
-    }
-
-    banner.classList.add(bannerClass);
-    labelEl.textContent = verdictText;
-    subEl.textContent   = verdictSub;
-    orderEl.textContent = `Order #${data.order_id || '—'}`;
-
-    // ── Similarity gauge ──
-    const avgScore = parseFloat(data.avg_score) || 0;
-    animateSimGauge(avgScore);
-    document.getElementById('sim-gauge-number').textContent = (avgScore * 100).toFixed(1) + '%';
-    document.getElementById('sub-front').textContent = data.front_score != null ? (data.front_score * 100).toFixed(1) + '%' : '—';
-    document.getElementById('sub-back').textContent  = data.back_score  != null ? (data.back_score  * 100).toFixed(1) + '%' : '—';
-    document.getElementById('sub-side').textContent  = data.side_score  != null ? (data.side_score  * 100).toFixed(1) + '%' : '—';
-
-    // Color subscores
-    colorSubscore('sub-front', data.front_score);
-    colorSubscore('sub-back',  data.back_score);
-    colorSubscore('sub-side',  data.side_score);
-
-    // ── Risk score gauge ──
-    const riskScore = (data.risk_score !== undefined && data.risk_score !== -1) ? data.risk_score : null;
-    if (riskScore !== null) {
-        animateRiskGauge(riskScore);
-        document.getElementById('risk-gauge-number').textContent = riskScore;
-        let riskLabel;
-        if (riskScore < 50)       riskLabel = 'LOW RISK';
-        else if (riskScore < 90)  riskLabel = 'ELEVATED';
-        else                      riskLabel = 'CRITICAL';
-        document.getElementById('risk-gauge-label').textContent = riskLabel;
-    } else {
-        document.getElementById('risk-gauge-number').textContent = '—';
-        document.getElementById('risk-gauge-label').textContent  = 'N/A';
-    }
-
-    // ── View cards ──
-    const isEmbeddingOnly = statusLower.includes('return_accepted') || 
-                            (statusLower.includes('accepted') && !statusLower.includes('vlm'));
-
-    if (isEmbeddingOnly) {
-        // No VLM was run — show informational message
-        ['front', 'back', 'side'].forEach(view => {
-            const bodyEl  = document.getElementById(`vcard-${view}-body`);
-            const scoreEl = document.getElementById(`vcard-${view}-score`);
-            const card    = document.getElementById(`card-${view}`);
-            const score   = data[`${view}_score`];
-            if (scoreEl) {
-                scoreEl.textContent = score != null ? (score * 100).toFixed(1) + '%' : '—';
-                scoreEl.style.color = getScoreColor(score);
-            }
-            if (bodyEl) bodyEl.innerHTML = '<p class="skip-msg">Embedding similarity was conclusive — VLM analysis was not required for this view.</p>';
-            setCardScoreClass(card, score);
-        });
-    } else {
-        renderViewCard('front', data.front_review, data.front_score);
-        renderViewCard('back',  data.back_review,  data.back_score);
-        renderViewCard('side',  data.side_review,  data.side_score);
-    }
-
-    // ── Main review ──
-    const mrBody = document.getElementById('main-review-body');
-    if (mrBody) {
-        mrBody.innerHTML = data.main_review ? renderMarkdown(data.main_review) : '<p class="review-placeholder">No synthesis available.</p>';
-    }
-}
-
-function renderViewCard(view, reviewText, score) {
-    const scoreEl = document.getElementById(`vcard-${view}-score`);
-    const bodyEl  = document.getElementById(`vcard-${view}-body`);
-    const card    = document.getElementById(`card-${view}`);
-
-    if (scoreEl) {
-        scoreEl.textContent = score != null ? (score * 100).toFixed(1) + '%' : '—';
-        scoreEl.style.color = getScoreColor(score);
-    }
-
-    if (bodyEl) {
-        bodyEl.innerHTML = reviewText
-            ? renderMarkdown(reviewText)
-            : '<p class="review-placeholder">No review available for this view.</p>';
-    }
-
-    setCardScoreClass(card, score);
-}
-
-function setCardScoreClass(card, score) {
-    if (!card) return;
-    card.classList.remove('score-high', 'score-mid', 'score-low');
-    if      (score >= 0.75) card.classList.add('score-high');
-    else if (score >= 0.55) card.classList.add('score-mid');
-    else if (score != null) card.classList.add('score-low');
-}
-
-function colorSubscore(id, score) {
-    const el = document.getElementById(id);
-    if (el) el.style.color = getScoreColor(score);
-}
-
-function getScoreColor(score) {
-    if (score == null) return 'var(--text-muted)';
-    if (score >= 0.75) return 'var(--verified)';
-    if (score >= 0.55) return 'var(--caution)';
-    return 'var(--alert)';
-}
-
-function getRiskColor(risk) {
-    if (risk == null) return 'var(--text-muted)';
-    if (risk < 50)    return 'var(--verified)';
-    if (risk < 90)    return 'var(--caution)';
-    return 'var(--alert)';
-}
-
-// ── Gauge Math ─────────────────────────────────────────────────
-// 180° arc: score 0 = left (20,90), score 1 = right (160,90)
-// angle α = score * π, point = (90 - 70*cos(α), 90 - 70*sin(α))
-function arcPath(cx, cy, r, score) {
-    if (score <= 0) return `M ${cx - r} ${cy}`;
-    if (score >= 1) return `M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`;
-    const angle = score * Math.PI;
-    const ex = cx - r * Math.cos(angle);
-    const ey = cy - r * Math.sin(angle);
-    const largeArc = score > 0.5 ? 1 : 0;
-    return `M ${cx - r} ${cy} A ${r} ${r} 0 ${largeArc} 1 ${ex.toFixed(2)} ${ey.toFixed(2)}`;
-}
-
-function animateSimGauge(score) {
-    // score: 0 to 1
-    const fill = document.getElementById('sim-gauge-fill');
-    if (!fill) return;
-
-    let color;
-    if      (score >= 0.75) color = 'var(--verified)';
-    else if (score >= 0.55) color = 'var(--caution)';
-    else                    color = 'var(--alert)';
-
-    fill.setAttribute('stroke', color);
-
-    let current = 0;
-    const target = Math.min(score, 1);
-    const steps  = 40;
-    const step   = target / steps;
-
-    const anim = setInterval(() => {
-        current = Math.min(current + step, target);
-        fill.setAttribute('d', arcPath(90, 90, 70, current));
-        if (current >= target) clearInterval(anim);
-    }, 25);
-
-    // Color the gauge number
-    const numEl = document.getElementById('sim-gauge-number');
-    if (numEl) numEl.style.color = color;
-}
-
-function animateRiskGauge(riskScore) {
-    // riskScore: 0 to 100
-    const fill    = document.getElementById('risk-gauge-fill');
-    const numEl   = document.getElementById('risk-gauge-number');
-    const labelEl = document.getElementById('risk-gauge-label');
-    if (!fill) return;
-
-    const score01 = Math.min(riskScore / 100, 1);
-    const color   = getRiskColor(riskScore);
-
-    fill.setAttribute('stroke', color);
-    if (numEl)   numEl.style.color   = color;
-    if (labelEl) labelEl.style.color = color;
-
-    let current = 0;
-    const target = score01;
-    const steps  = 40;
-    const step   = target / steps;
-
-    const anim = setInterval(() => {
-        current = Math.min(current + step, target);
-        fill.setAttribute('d', arcPath(90, 90, 70, current));
-        if (current >= target) clearInterval(anim);
-    }, 25);
-}
-
-// ── Markdown renderer (minimal: handles ## headings, bullets, paragraphs) ──
-function renderMarkdown(text) {
-    if (!text) return '';
-    const lines = text.split('\n');
-    const out   = [];
-    let inList  = false;
-
-    for (const line of lines) {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('## ')) {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<h3 class="rv-h">${esc(trimmed.slice(3))}</h3>`);
-        } else if (trimmed.startsWith('# ')) {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<h3 class="rv-h">${esc(trimmed.slice(2))}</h3>`);
-        } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-            if (!inList) { out.push('<ul class="rv-ul">'); inList = true; }
-            out.push(`<li>${esc(trimmed.slice(2))}</li>`);
-        } else if (trimmed === '') {
-            if (inList) { out.push('</ul>'); inList = false; }
-        } else if (/^risk_score\s*=\s*\d+/.test(trimmed)) {
-            // suppress raw risk_score= line from rendered output
-        } else {
-            if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<p class="rv-p">${esc(trimmed)}</p>`);
-        }
-    }
-
-    if (inList) out.push('</ul>');
-    return out.join('\n');
-}
-
-function esc(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Dashboard ──────────────────────────────────────────────────
-async function loadOrders() {
+/* ── delivery ────────────────────────────────────────────────────────── */
+function initDelivery() {
+  const form = $('#delivery-form');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (ANGLES.some(a => !$(`input[name="${a}_image"]`, form).files.length)) return toast('Add all three photos (front, back, side).', 'error');
+    busy(true, 'Registering delivery', 'Removing backgrounds, computing embeddings, and reading labels with the identity agent…');
     try {
-        const res  = await fetch('/api/orders');
-        const data = await res.json();
-
-        if (!data.success || !Array.isArray(data.orders)) {
-            showEmpty();
-            return;
-        }
-
-        const orders = data.orders;
-
-        if (orders.length === 0) {
-            showEmpty();
-            return;
-        }
-
-        // Stats
-        const accepted = orders.filter(o => (o.status || '').toLowerCase().includes('accept')).length;
-        const flagged  = orders.filter(o => {
-            const s = (o.status || '').toLowerCase();
-            return s.includes('reject') || s.includes('review');
-        }).length;
-
-        const avgScores = orders.map(o => parseFloat(o.avg_score)).filter(v => !isNaN(v));
-        const avgConf   = avgScores.length ? (avgScores.reduce((a,b) => a+b,0) / avgScores.length * 100).toFixed(1) + '%' : '—';
-
-        document.getElementById('stat-total').textContent    = orders.length;
-        document.getElementById('stat-accepted').textContent = accepted;
-        document.getElementById('stat-flagged').textContent  = flagged;
-        document.getElementById('stat-avg').textContent      = avgConf;
-
-        // Table
-        const tbody = document.getElementById('orders-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        orders.forEach(order => {
-            const tr = document.createElement('tr');
-            const avgPct = order.avg_score != null ? (parseFloat(order.avg_score) * 100).toFixed(1) + '%' : '—';
-            tr.innerHTML = `
-                <td><span class="mono" style="color:var(--accent);">#${order.order_id}</span></td>
-                <td><span class="mono" style="color:${scoreColor01(order.avg_score)};">${avgPct}</span></td>
-                <td>${getStatusPill(order.status)}</td>
-            `;
-            tr.style.cursor = 'pointer';
-            tr.addEventListener('click', () => {
-                document.getElementById('lookup-order-id').value = order.order_id;
-                doLookup(order.order_id);
-                showSection('lookup');
-            });
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('orders-empty').style.display = 'none';
-        document.getElementById('orders-table').style.display = 'table';
-
-    } catch (e) {
-        showEmpty();
+      const data = await api('/api/deliveries', { method: 'POST', body: new FormData(form) });
+      store.set('rg-last-order', data.order.order_id);
+      renderDelivery(data.order, data.images);
+      clearPreviews(form);
+      form.reset();
+      refreshMe();
+      toast(`Delivery registered as order #${data.order.order_id}`, 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      busy(false);
     }
+  });
+}
+function renderDelivery(o, images) {
+  const fp = o.fingerprint;
+  const ids = fp?.identifiers?.length
+    ? fp.identifiers.map(i => `<span class="chip ${['serial_number', 'batch_number', 'barcode'].includes(i.kind) ? 'unit' : ''}" title="${esc(i.kind)} · ${esc(i.location)}">${esc(i.text)}</span>`).join('')
+    : '<span class="dim">None visible</span>';
+  const list = arr => arr?.length ? arr.map(x => esc(typeof x === 'string' ? x : `${x.description} (${x.view})`)).join('; ') : '<span class="dim">None</span>';
+  $('#delivery-result').innerHTML = `
+    <div class="card-title">Delivery fingerprint saved</div>
+    <div class="order-badge"><span class="num mono">#${o.order_id}</span><span class="muted">order ID · ${esc(o.category)}</span></div>
+    ${fp ? `<p>${esc(fp.product_description)}</p>` : `<p class="muted">Gemini could not read the labels for this delivery, so the label check will be skipped for this order. Reason: ${esc(o.fingerprint_error || 'unavailable')}</p>`}
+    <dl class="kv">
+      <dt>Identifiers</dt><dd><div class="chips">${ids}</div></dd>
+      <dt>Marks</dt><dd>${list(fp?.distinctive_marks)}</dd>
+      <dt>Accessories</dt><dd>${list(fp?.accessories)}</dd>
+      <dt>Tags</dt><dd>${list(fp?.tags_attached)}</dd>
+    </dl>
+    <div class="thumbs">${ANGLES.map(a => `<div class="thumb"><span>${a}</span><img src="${images[a].cutout}" alt="${a} cut-out"></div>`).join('')}</div>
+    <a class="btn btn-primary" style="width:100%;margin-top:16px" href="#return">Process a return for #${o.order_id} →</a>`;
 }
 
-function showEmpty() {
-    document.getElementById('orders-empty').style.display = 'flex';
-    document.getElementById('orders-table').style.display = 'none';
-    document.getElementById('stat-total').textContent    = '0';
-    document.getElementById('stat-accepted').textContent = '0';
-    document.getElementById('stat-flagged').textContent  = '0';
-    document.getElementById('stat-avg').textContent      = '—';
+/* ── return ──────────────────────────────────────────────────────────── */
+function prefillReturn() {
+  const last = store.get('rg-last-order');
+  if (last && !$('#r-order').value) $('#r-order').value = last;
 }
-
-function scoreColor01(score) {
-    if (score == null) return 'var(--text-muted)';
-    const f = parseFloat(score);
-    if (f >= 0.75) return 'var(--verified)';
-    if (f >= 0.55) return 'var(--caution)';
-    return 'var(--alert)';
-}
-
-function getStatusPill(status) {
-    if (!status) return `<span class="status-pill pill-pending">Unknown</span>`;
-    const s = status.toLowerCase();
-    if (s.includes('accept')) return `<span class="status-pill pill-accepted">${status}</span>`;
-    if (s.includes('review')) return `<span class="status-pill pill-review">${status}</span>`;
-    if (s.includes('reject')) return `<span class="status-pill pill-rejected">${status}</span>`;
-    return `<span class="status-pill pill-pending">${status}</span>`;
-}
-
-// ── Order Lookup ───────────────────────────────────────────────
-function initLookup() {
-    const form = document.getElementById('lookup-form');
-    if (!form) return;
-
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        const id = document.getElementById('lookup-order-id').value.trim();
-        if (!id) return;
-        doLookup(id);
-    });
-}
-
-async function doLookup(orderId) {
-    const resultEl = document.getElementById('lookup-result');
-    if (!resultEl) return;
-    resultEl.innerHTML = '<p style="color:var(--text-muted);font-size:14px;padding:16px 0;">Searching…</p>';
-
+function initReturn() {
+  const form = $('#return-form');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!/^#?\d+$/.test($('#r-order').value.trim())) return toast('Enter the numeric order ID from the delivery.', 'error');
+    if (ANGLES.some(a => !$(`input[name="${a}_image"]`, form).files.length)) return toast('Add all three photos (front, back, side).', 'error');
+    busy(true, 'Uploading return photos', '');
     try {
-        const res  = await fetch(`/api/status/${encodeURIComponent(orderId)}`);
-        const data = await res.json();
-
-        if (!data.success || !data.order) {
-            resultEl.innerHTML = `<p style="color:var(--alert);font-size:14px;padding:16px 0;">Order #${orderId} not found or has not been processed yet.</p>`;
-            return;
-        }
-
-        const o = data.order;
-        const avgPct = o.avg_score != null ? (parseFloat(o.avg_score) * 100).toFixed(1) + '%' : '—';
-        const frontPct = o.front_score != null ? (parseFloat(o.front_score) * 100).toFixed(1) + '%' : '—';
-        const backPct  = o.back_score  != null ? (parseFloat(o.back_score)  * 100).toFixed(1) + '%' : '—';
-        const sidePct  = o.side_score  != null ? (parseFloat(o.side_score)  * 100).toFixed(1) + '%' : '—';
-
-        let reviewHtml = '';
-        if (o.main_review) {
-            reviewHtml = `
-                <div class="lookup-review">
-                    <div class="lookup-review-title">JUDGE SYNTHESIS</div>
-                    <div class="lookup-review-rendered">${renderMarkdown(o.main_review)}</div>
-                </div>
-            `;
-        }
-
-        resultEl.innerHTML = `
-            <div class="lookup-result-card">
-                <div class="lookup-result-header">
-                    <h3 class="mono">#${o.order_id}</h3>
-                    ${getStatusPill(o.status)}
-                </div>
-                <div class="detail-grid">
-                    <div class="detail-item"><div class="detail-label">AVG SIMILARITY</div><div class="detail-value mono" style="color:${scoreColor01(o.avg_score)}">${avgPct}</div></div>
-                    <div class="detail-item"><div class="detail-label">FRONT</div><div class="detail-value mono" style="color:${scoreColor01(o.front_score)}">${frontPct}</div></div>
-                    <div class="detail-item"><div class="detail-label">BACK</div><div class="detail-value mono" style="color:${scoreColor01(o.back_score)}">${backPct}</div></div>
-                    <div class="detail-item"><div class="detail-label">SIDE</div><div class="detail-value mono" style="color:${scoreColor01(o.side_score)}">${sidePct}</div></div>
-                </div>
-                ${reviewHtml}
-            </div>
-        `;
-
-    } catch (e) {
-        resultEl.innerHTML = '<p style="color:var(--alert);font-size:14px;padding:16px 0;">Network error — could not reach server.</p>';
+      const data = await api('/api/returns', { method: 'POST', body: new FormData(form) });
+      clearPreviews(form);
+      $$('input[type=file]', form).forEach(i => { i.value = ''; });
+      location.hash = `#result/${data.return_id}`;
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      busy(false);
     }
+  });
 }
 
-// ── Spline progressive enhancement ────────────────────────────
-function initSpline() {
-    const spline   = document.getElementById('spline-scene');
-    const fallback = document.getElementById('spline-fallback');
-    if (!spline) return;
+/* ── result (live) ───────────────────────────────────────────────────── */
+const LEVEL_BADGE = { good: 'b-ok', ok: 'b-ok', warn: 'b-warn', bad: 'b-bad', info: 'b-dim' };
+const LEVEL_ICON = { good: '✓', ok: '✓', warn: '!', bad: '✕', info: 'i' };
 
-    // Listen for Spline's own load event
-    spline.addEventListener('load', () => {
-        spline.classList.add('loaded');
-        if (fallback) fallback.style.opacity = '0';
-    });
-
-    // Timeout: if Spline hasn't loaded in 6s, keep fallback
-    setTimeout(() => {
-        if (!spline.classList.contains('loaded')) {
-            // Spline unavailable — fallback is already visible
-        }
-    }, 6000);
+async function openResult(id) {
+  ['#res-verdict', '#res-identity', '#res-inspection', '#res-llm', '#res-views'].forEach(s => { $(s).innerHTML = ''; });
+  $('#res-checks').innerHTML = '<p class="dim">Waiting for the agents…</p>';
+  $('#res-gemini').innerHTML = '<p class="dim">Waiting for the agents…</p>';
+  $('#res-evidence').innerHTML = '';
+  $('#res-report').classList.add('hidden');
+  $('#res-title').textContent = 'Verifying return…';
+  const tick = async () => {
+    try {
+      const data = await api(`/api/returns/${id}`);
+      renderResult(data);
+      if (data.ret.status === 'PROCESSING' && location.hash === `#result/${id}`) pollTimer = setTimeout(tick, 1100);
+    } catch (err) {
+      $('#res-title').textContent = 'Return not found';
+      $('#res-sub').textContent = err.message;
+    }
+  };
+  tick();
 }
 
-// ── Init ───────────────────────────────────────────────────────
+function renderPipeline(ret) {
+  const done = new Set(ret.status === 'PROCESSING' ? ret.progress : (ret.result?.route || ret.progress));
+  const times = Object.fromEntries((ret.result?.trace || []).map(t => [t.node, t.ms]));
+  const finished = ret.status !== 'PROCESSING';
+  const firstPending = NODES.find(([k]) => !done.has(k) && !['identity', 'inspector', 'decide'].includes(k));
+  $('#res-pipeline').innerHTML = NODES.map(([k, name, desc, llm]) => {
+    let cls = '', st = 'waiting';
+    if (done.has(k)) { cls = 'done'; st = times[k] != null ? `${(times[k] / 1000).toFixed(1)} s` : 'done'; }
+    else if (finished) { cls = 'skipped'; st = 'not needed'; }
+    else if ((firstPending && firstPending[0] === k) || (!firstPending && done.has('triage') && k === 'decide')) { cls = 'running'; st = 'running'; }
+    return `<div class="pnode ${cls} ${llm ? 'llm' : ''}"><span class="ic"></span><span class="nm">${name}<small>${desc}</small></span><span class="st">${st}</span></div>`;
+  }).join('');
+}
+
+function gauge(risk, band) {
+  const r = Math.max(0, Math.min(100, risk ?? 0)) / 100;
+  const a = Math.PI * (1 - r);
+  const x = 100 + 80 * Math.cos(a), y = 100 - 80 * Math.sin(a);
+  const color = risk == null ? 'var(--text-3)' : risk < 50 ? 'var(--ok)' : risk < 90 ? 'var(--warn)' : 'var(--bad)';
+  return `<div class="gauge"><svg viewBox="0 0 200 110" aria-hidden="true">
+      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--surface-3)" stroke-width="14" stroke-linecap="round"/>
+      ${r > 0 ? `<path d="M20 100 A80 80 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>` : ''}
+    </svg><div class="gv mono" style="color:${color}">${risk ?? '—'}</div><div class="gk">${band ? esc(band.label) + ' · ' : ''}risk score out of 100</div></div>`;
+}
+
+function checkRow(c) {
+  return `<div class="check"><span class="ck ${LEVEL_BADGE[c.level] || 'b-dim'}">${LEVEL_ICON[c.level] || 'i'}</span>
+    <div><div class="ck-top"><b>${esc(c.name)}</b>${c.value ? `<span class="ck-val mono">${esc(c.value)}</span>` : ''}</div>
+    <div class="ck-verdict">${esc(c.verdict)}</div>${c.detail ? `<div class="ck-detail">${esc(c.detail)}</div>` : ''}</div></div>`;
+}
+
+function geminiCard(g, returnId) {
+  const status = { ran: 'Ran', unavailable: 'Unavailable', not_needed: 'Not needed' }[g.status] || g.status;
+  return `<div class="check"><span class="ck ${LEVEL_BADGE[g.level] || 'b-dim'}">${g.status === 'ran' ? (LEVEL_ICON[g.level] || 'i') : '–'}</span>
+    <div><div class="ck-top"><b>${esc(g.agent)}</b><span class="badge ${g.status === 'ran' ? 'b-ok' : g.status === 'unavailable' ? 'b-warn' : 'b-dim'}">${status}</span></div>
+    ${g.status === 'ran' ? `<div class="ck-verdict">${esc(g.verdict)}</div>` : ''}
+    ${g.detail ? `<div class="ck-detail">${esc(g.detail)}</div>` : ''}
+    ${g.bullets?.length ? `<ul class="list" style="margin-top:6px">${g.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
+    ${g.note ? `<div class="ck-detail"><em>${esc(g.note)}</em></div>` : ''}
+    ${g.can_request ? `<button class="btn btn-ghost btn-sm" style="margin-top:10px" data-second-opinion="${returnId}">Ask Gemini for a second opinion</button>` : ''}
+    </div></div>`;
+}
+
+function renderResult({ ret, order, explained: x, delivery_images: dImg, return_images: rImg }) {
+  $('#res-eyebrow').textContent = `Return #${ret.return_id} · Order #${ret.order_id}`;
+  $('#res-sub').textContent = `${order.product_name || order.category} · customer ${order.customer_id} · reason: ${ret.reason.replace(/_/g, ' ')}`;
+  renderPipeline(ret);
+
+  if (ret.status === 'PROCESSING') {
+    $('#res-title').textContent = 'Verifying return…';
+    $('#res-verdict').innerHTML = `<div class="verdict"><div><div class="vlabel" style="color:var(--accent)">Analysing</div><div class="vhead">Agents are working through the evidence. This page updates live.</div></div><div class="spinner" style="margin:0"></div></div>`;
+    return;
+  }
+  if (ret.status === 'ERROR') {
+    $('#res-title').textContent = 'Pipeline error';
+    $('#res-verdict').innerHTML = `<div class="verdict ERROR"><div><div class="vlabel">Error</div><div class="vhead">${esc(ret.error)}</div><div class="vmeta">The return was not decided. Resubmit it, or review manually.</div></div></div>`;
+    return;
+  }
+
+  const r = ret.result, d = r.decision;
+  $('#res-title').textContent = d.headline;
+  $('#res-report').href = `/report/${ret.return_id}`;
+  $('#res-report').classList.remove('hidden');
+  $('#res-verdict').innerHTML = `
+    <div class="verdict ${d.decision}">
+      <div>
+        <div class="vlabel">${VERDICT[d.decision]}</div>
+        <div class="vhead">${esc(x.decision.sentence)}</div>
+        ${x.decision.reasons.length ? `<p class="muted" style="margin-top:8px">Main reasons: ${x.decision.reasons.map(esc).join(' · ')}</p>` : ''}
+        ${d.fraud_type ? `<span class="ftype">${esc(FRAUD_LABEL[d.fraud_type] || d.fraud_type)}</span>` : ''}
+        <ul class="list" style="margin-top:12px">${d.actions.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+        <div class="vmeta">${r.llm_call_count ? `${r.llm_call_count} Gemini call${r.llm_call_count === 1 ? '' : 's'}` : 'Decided by the free visual check, no Gemini call'}${d.thresholds ? ` · auto-approved below ${d.thresholds.accept_below}, rejected from ${d.thresholds.reject_from}` : ''}</div>
+      </div>
+      ${d.risk_score != null ? gauge(d.risk_score, x.decision.risk_band) : ''}
+    </div>`;
+
+  $('#res-checks').innerHTML = x.checks.map(checkRow).join('') || '<p class="muted">No checks ran.</p>';
+  $('#res-gemini').innerHTML = x.gemini.map(g => geminiCard(g, ret.return_id)).join('');
+  $$('[data-second-opinion]').forEach(b => b.addEventListener('click', () => requestSecondOpinion(Number(b.dataset.secondOpinion), b)));
+
+  // technical details
+  $('#res-evidence').innerHTML = x.evidence.length ? x.evidence.map(e => {
+    const w = Math.min(Math.abs(e.weight) / 6, 1) * 50;
+    const bar = e.weight >= 0 ? `left:50%;width:${w}%;background:var(--bad)` : `left:${50 - w}%;width:${w}%;background:var(--ok)`;
+    return `<div class="ev-row"><div><div class="ev-src">${esc(e.source.replace(/_/g, ' '))} · ${esc(e.effect)}</div>${esc(e.finding)}</div>
+      <div class="ev-bar"><i style="${bar}"></i></div><div class="ev-w ${e.weight > 0 ? 'pos' : e.weight < 0 ? 'neg' : ''}">${e.weight > 0 ? '+' : ''}${e.weight.toFixed(1)}</div></div>`;
+  }).join('') + '<p class="dim" style="font-size:12px;margin-top:10px">Each finding adds (red, towards fraud) or subtracts (green, towards genuine) log-odds; the total goes through a sigmoid to give the 0–100 score.</p>'
+    : `<p class="muted">${esc(d.summary)}</p>`;
+
+  const idn = r.identity;
+  $('#res-identity').innerHTML = idn?.locations ? `<div class="card-title" style="margin-top:22px">Identity agent · raw label readout</div>
+    <table class="t"><tr><th>Location</th><th>Recorded at delivery</th><th>Read at return</th><th>Result</th></tr>
+    ${idn.locations.map(l => `<tr><td>${esc(l.location)}<div class="dim" style="font-size:12px">${esc(l.view)} view</div></td>
+      <td class="mono" style="font-size:12px">${(l.expected || (order.fingerprint?.identifiers || [])
+        .filter(i => i.location === l.location && i.view === l.view).map(i => i.text)).map(esc).join('<br>') || '—'}</td>
+      <td class="mono" style="font-size:12px">${esc(l.observed) || '—'}</td>
+      <td><span class="badge ${['unit_match', 'model_match'].includes(l.status) ? 'b-ok' : ['missing', 'mismatch'].includes(l.status) ? 'b-bad' : 'b-dim'}">${esc(l.status.replace(/_/g, ' '))}</span></td></tr>`).join('')}
+    </table>` : '';
+
+  const ins = r.inspection;
+  $('#res-inspection').innerHTML = ins ? `<div class="card-title" style="margin-top:22px">Visual inspector · raw output per view</div>
+    <table class="t"><tr><th>View</th><th>Verdict</th><th>Differences</th></tr>
+    ${ins.findings.map(f => `<tr><td>${esc(f.view)}</td><td>${esc(f.verdict.replace(/_/g, ' '))}</td><td>${esc(f.differences.join('; ')) || '—'}</td></tr>`).join('')}</table>` : '';
+
+  $('#res-llm').innerHTML = `<div class="card-title" style="margin-top:22px">LLM calls (${r.llm_call_count})</div>
+    ${r.llm_calls.length ? `<table class="t"><tr><th>Agent</th><th>Time</th><th>Tokens</th><th>Tries</th></tr>${r.llm_calls.map(c =>
+      `<tr><td>${esc(c.agent.replace(/_/g, ' '))}${c.ok ? '' : ' <span class="badge b-bad">failed</span>'}</td><td class="mono">${c.latency_s}s</td><td class="mono">${c.input_tokens + c.output_tokens}</td><td class="mono">${c.attempts}</td></tr>`).join('')}</table>`
+      : '<p class="muted">None. The free visual check settled this return on its own.</p>'}`;
+
+  const q = r.quality || {};
+  $('#res-views').innerHTML = `<div class="card-title" style="margin-top:4px">Delivered vs returned, view by view</div><div class="views">${ANGLES.map(a => {
+    const v = x.views[a];
+    const retImg = d.decision === 'RETAKE_REQUIRED' ? rImg[a].photo : rImg[a].cutout;
+    return `<div class="view"><div class="pair"><div><span>DELIVERED</span><img src="${dImg[a].cutout}" alt="Delivered ${a}"></div>
+      <div><span>RETURNED</span><img src="${retImg}" alt="Returned ${a}" onerror="this.src='${rImg[a].photo}'"></div></div>
+      <div class="vfoot"><b>${a}</b>${q[a] && !q[a].ok ? `<span class="badge b-warn">${esc(q[a].problem)}</span>` : v ? `<span>
+        <span class="badge ${LEVEL_BADGE[v.shape_level]}" title="${esc(v.shape_verdict)}">shape ${esc(v.shape)}</span>
+        <span class="badge ${LEVEL_BADGE[v.colour_level]}">${esc(v.colour_verdict)}</span></span>` : ''}</div></div>`;
+  }).join('')}</div>`;
+}
+
+async function requestSecondOpinion(returnId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Asking Gemini…';
+  try {
+    const { opinion } = await api(`/api/returns/${returnId}/second-opinion`, { method: 'POST' });
+    toast(opinion.ok ? 'Gemini second opinion added.' : 'Gemini could not run right now; the reason is shown below.', opinion.ok ? 'success' : 'error');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+  openResult(returnId);
+}
+
+/* ── account ─────────────────────────────────────────────────────────── */
+let me = null;
+
+async function refreshMe() {
+  try {
+    me = await api('/api/auth/me');
+  } catch (e) {
+    me = { customer: null };
+  }
+  const c = me.customer;
+  $('#nav-account').textContent = c ? c.customer_id : 'Sign in';
+  $('#nav-account').classList.toggle('signed-in', !!c);
+  $$('[data-who]').forEach(el => {
+    el.classList.toggle('out', !c);
+    el.innerHTML = c
+      ? `<span class="badge b-ok">Signed in</span><span class="who-text">Customer <b class="mono">${esc(c.customer_id)}</b> · ${esc(c.email)}</span>`
+      : `<span class="who-text">Sign in so this is linked to your customer ID and return history.</span><a class="btn btn-dark btn-sm" href="#account">Sign in</a>`;
+  });
+  const chips = $('#r-my-orders');
+  if (chips) {
+    chips.innerHTML = c && me.orders?.length
+      ? '<span class="dim" style="font-size:12px">Your orders:</span>' + me.orders.map(o => `<button type="button" class="chip" data-pick="${o.order_id}">#${o.order_id} ${esc((o.product_name || o.category).slice(0, 24))}</button>`).join('')
+      : '';
+    $$('[data-pick]', chips).forEach(b => b.addEventListener('click', () => { $('#r-order').value = b.dataset.pick; }));
+  }
+  return me;
+}
+
+async function loadAccount() {
+  await refreshMe();
+  const c = me.customer;
+  $('#acct-out').classList.toggle('hidden', !!c);
+  $('#acct-in').classList.toggle('hidden', !c);
+  if (!c) return;
+  $('#acct-id').textContent = c.customer_id;
+  $('#acct-details').innerHTML = `<dt>Email</dt><dd>${esc(c.email)}</dd><dt>Mobile</dt><dd class="mono">${esc(c.phone)}</dd><dt>Member since</dt><dd>${esc(c.created_at.slice(0, 10))}</dd>`;
+  const p = me.profile, px = me.profile_explained;
+  $('#acct-profile').innerHTML = historyCard(me.profile, me.profile_explained);
+}
+
+function historyCard(p, px) {
+  return checkRow({ name: 'Return history', ...px }) +
+    `<p class="dim" style="font-size:13px;margin-top:10px">${p.prior_returns} earlier return(s), ${p.prior_flagged} flagged. Your next return is auto-approved below risk ${p.accept_below} (standard: 50) and rejected from ${p.reject_from}.</p>`;
+}
+
+const AUTH_COPY = {
+  login: ['Welcome back', 'Sign in with the email and mobile number you registered with.'],
+  signup: ['Create your account', 'Get a customer ID that links your deliveries and returns.'],
+};
+const DEMO_ACCOUNT = { email: 'demo@returnguard.app', phone: '9000000001' };
+
+function showAuthTab(tab) {
+  $$('[data-auth-tab]').forEach(b => {
+    const on = b.dataset.authTab === tab;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on);
+  });
+  $('#login-form').classList.toggle('hidden', tab !== 'login');
+  $('#signup-form').classList.toggle('hidden', tab !== 'signup');
+  [$('#auth-title').textContent, $('#auth-sub').textContent] = AUTH_COPY[tab];
+}
+
+async function authRequest(url, email, phone) {
+  return api(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, phone }) });
+}
+
+function afterSignIn(customer, verb) {
+  toast(`${verb} · ${customer.customer_id}`, 'success');
+  const next = store.get('rg-after-signin');
+  if (next) { store.set('rg-after-signin', ''); location.hash = next; } else { loadAccount(); }
+}
+
+function initAccount() {
+  $$('[data-auth-tab]').forEach(b => b.addEventListener('click', () => showAuthTab(b.dataset.authTab)));
+  const submit = (formId, url, verb) => $(formId).addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    try {
+      const { customer } = await authRequest(url, f.get('email'), f.get('phone'));
+      e.target.reset();
+      afterSignIn(customer, verb);
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+  submit('#signup-form', '/api/auth/signup', 'Account created');
+  submit('#login-form', '/api/auth/login', 'Signed in');
+  $('#demo-login').addEventListener('click', async () => {
+    try {
+      let customer;
+      try {
+        ({ customer } = await authRequest('/api/auth/login', DEMO_ACCOUNT.email, DEMO_ACCOUNT.phone));
+      } catch (e) {
+        ({ customer } = await authRequest('/api/auth/signup', DEMO_ACCOUNT.email, DEMO_ACCOUNT.phone));
+      }
+      afterSignIn(customer, 'Signed in to the demo account');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+  $('#logout-btn').addEventListener('click', async () => {
+    await api('/api/auth/logout', { method: 'POST' });
+    toast('Signed out.', 'success');
+    loadAccount();
+  });
+}
+
+/* ── dashboard ───────────────────────────────────────────────────────── */
+async function loadDashboard() {
+  await refreshMe();
+  const signedIn = !!me.customer;
+  $('#dash-signed-out').classList.toggle('hidden', signedIn);
+  $('#dash-body').classList.toggle('hidden', !signedIn);
+  $('#dash-eyebrow').textContent = signedIn ? `Customer ${me.customer.customer_id}` : 'Your activity';
+  if (!signedIn) return;
+  try {
+    const [{ stats: s, profile, profile_explained: px }, { returns }, { orders }] =
+      await Promise.all([api('/api/stats'), api('/api/returns'), api('/api/orders')]);
+    const by = s.by_status;
+    const flagged = (by.HUMAN_REVIEW || 0) + (by.REJECT || 0);
+    $('#dash-kpis').innerHTML = [
+      [s.orders, 'My deliveries'], [s.returns, 'My returns'], [by.ACCEPT || 0, 'Auto-accepted'],
+      [flagged, 'Flagged (review + reject)'], [s.decided_without_llm, 'Decided with no LLM call'],
+    ].map(([v, k]) => `<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+    $('#dash-history').innerHTML = historyCard(profile, px);
+    $('#dash-returns').innerHTML = returns.length ? `<table class="t"><tr><th>Return</th><th>Order</th><th>Product</th><th>Reason</th><th>Risk</th><th>Verdict</th></tr>
+      ${returns.map(r => `<tr class="click" data-href="#result/${r.return_id}"><td class="mono">#${r.return_id}</td><td class="mono">#${r.order_id}</td>
+        <td>${esc(r.product_name || r.category)}</td><td>${esc(r.reason.replace(/_/g, ' '))}</td><td class="mono">${r.risk_score ?? '—'}</td>
+        <td><span class="pill ${r.status}">${VERDICT[r.status] || r.status}</span></td></tr>`).join('')}</table>`
+      : '<div class="empty">No returns yet. Register a delivery, then process a return.</div>';
+    $('#dash-orders').innerHTML = orders.length ? `<table class="t"><tr><th>Order</th><th>Delivered</th><th>Product</th><th>Category</th><th>Fingerprint</th><th>Last return</th></tr>
+      ${orders.map(o => `<tr><td class="mono">#${o.order_id}</td><td>${esc(o.delivered_at.slice(0, 10))}</td><td>${esc(o.product_name || '—')}</td><td>${esc(o.category)}</td>
+        <td>${o.has_fingerprint ? '<span class="badge b-ok">saved</span>' : '<span class="badge b-dim">visual only</span>'}</td>
+        <td>${o.last_return_status ? `<span class="pill ${o.last_return_status}">${VERDICT[o.last_return_status] || o.last_return_status}</span>` : '—'}</td></tr>`).join('')}</table>`
+      : '<div class="empty">No deliveries yet.</div>';
+    $$('#dash-returns tr.click').forEach(tr => tr.addEventListener('click', () => { location.hash = tr.dataset.href; }));
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+/* ── evaluation ──────────────────────────────────────────────────────── */
+let evalCache = null;
+async function getEval(pairs = false) {
+  if (evalCache && (!pairs || evalCache.per_pair)) return evalCache;
+  evalCache = (await api(`/api/metrics${pairs ? '?pairs=1' : ''}`)).results;
+  return evalCache;
+}
+
+let stressCache;
+async function getStress() {
+  if (stressCache === undefined) {
+    try { stressCache = await api('/api/stress'); } catch (e) { stressCache = null; }
+  }
+  return stressCache;
+}
+const num = n => Number(n).toLocaleString('en-US');
+
+async function loadHomeMetrics() {
+  try {
+    const [r, s] = await Promise.all([getEval(), getStress()]);
+    const m = r.metrics, a = r.agentic;
+    const p = s?.pooled;
+    const vals = { f0_5: m.f0_5.toFixed(3), precision: pct(p ? p.precision : m.precision), recall: pct(m.recall),
+                   no_llm: a.decided_without_llm_pct + '%', calls: a.llm_calls_per_return };
+    $$('#home-metrics [data-m]').forEach(el => { el.textContent = vals[el.dataset.m]; });
+    const prec = p
+      ? ` Precision ${pct(p.precision)}: ${num(p.tp)} of ${num(p.flags)} flags were fraud across ${p.conditions} photo conditions (95% interval ${pct(p.precision_ci[0])}–${pct(p.precision_ci[1])}); ${m.tp}/${m.tp + m.fp} on the main set.`
+      : (m.precision_ci ? ` Precision 95% interval ${pct(m.precision_ci[0], 0)}–${pct(m.precision_ci[1], 0)}.` : '');
+    const held = r.held_out ? ` On items added after tuning was frozen: F0.5 ${r.held_out.f0_5.toFixed(3)} (${r.held_out.pairs} pairs).` : '';
+    $('#home-metrics-note').innerHTML = `F0.5, recall and LLM use measured on ${r.dataset.pairs} labelled delivery/return pairs (${r.dataset.genuine} genuine, ${r.dataset.fraud} fraud, ${r.dataset.items} physical items) with <span class="mono">${esc(r.model)}</span>.${prec}${held} <a href="#evaluation">How these are measured →</a>`;
+  } catch (e) {
+    $('#home-metrics-note').textContent = 'No evaluation results yet. Run: python scripts/evaluate.py';
+  }
+}
+
+async function loadEvaluation() {
+  const body = $('#eval-body');
+  let r;
+  try { r = await getEval(true); } catch (e) {
+    body.innerHTML = `<div class="note">No evaluation results yet. Run <span class="code">python scripts/evaluate.py</span>.</div>`;
+    return;
+  }
+  const s = await getStress();
+  const sp = s?.pooled;
+  const m = r.metrics, a = r.agentic;
+  const kpi = (v, k, d, hero) => `<div class="kpi ${hero ? 'hero-kpi' : ''}"><div class="v">${v}</div><div class="k">${k}</div>${d ? `<div class="d">${d}</div>` : ''}</div>`;
+  const cell = (lab, dec) => {
+    const n = (r.confusion[lab] || {})[dec] || 0;
+    const good = (lab === 'genuine' && dec === 'ACCEPT') || (lab === 'fraud' && dec !== 'ACCEPT');
+    return `<div class="c ${n ? (good ? 'good' : 'badc') : ''}">${n}<small>${good ? 'correct' : 'error'}</small></div>`;
+  };
+  const misses = (r.per_pair || []).filter(p => (p.decision !== 'ACCEPT') !== p.is_fraud);
+  const maxRoute = Math.max(...Object.values(a.routes));
+  const ci = c => c ? `95% interval ${pct(c[0], 0)}–${pct(c[1], 0)}` : '';
+  const DECISIONS = ['ACCEPT', 'HUMAN_REVIEW', 'REJECT', 'RETAKE_REQUIRED'];
+  body.innerHTML = `
+    <div class="kpis">
+      ${kpi(m.f0_5.toFixed(3), 'F0.5 score', 'precision-weighted (β = 0.5)', true)}
+      ${sp ? kpi(pct(sp.precision), 'Precision, stress-tested', `${num(sp.tp)} of ${num(sp.flags)} flags were fraud · 95% interval ${pct(sp.precision_ci[0])}–${pct(sp.precision_ci[1])} · main set ${m.tp}/${m.tp + m.fp}`)
+           : kpi(pct(m.precision), 'Precision', `${m.tp} of ${m.tp + m.fp} flags were fraud · ${ci(m.precision_ci)}`)}
+      ${kpi(pct(m.recall), 'Recall', `${m.tp} of ${m.tp + m.fn} frauds flagged · ${ci(m.recall_ci)}`)}
+      ${kpi(m.f1.toFixed(3), 'F1 score')}
+      ${kpi(pct(m.false_rejection_rate), 'Genuine returns flagged', `${m.fp} of ${m.fp + m.tn} · ${ci(m.false_rejection_rate_ci)}`)}
+    </div>
+    ${r.held_out ? `<div class="section-head" style="margin:8px 0 14px"><span class="eyebrow">Held-out test · ${r.held_out.items.map(esc).join(' + ')}</span></div>
+    <div class="kpis">
+      ${kpi(r.held_out.f0_5.toFixed(3), 'F0.5 on held-out items', `${r.held_out.pairs} pairs (${r.held_out.genuine} genuine, ${r.held_out.fraud} fraud)`, true)}
+      ${kpi(pct(r.held_out.precision), 'Precision', `${r.held_out.tp}/${r.held_out.tp + r.held_out.fp} · ${ci(r.held_out.precision_ci)}`)}
+      ${kpi(pct(r.held_out.recall), 'Recall', `${r.held_out.tp}/${r.held_out.tp + r.held_out.fn} · ${ci(r.held_out.recall_ci)}`)}
+      ${kpi(pct(r.held_out.false_rejection_rate), 'Genuine flagged', `${r.held_out.fp} of ${r.held_out.fp + r.held_out.tn}`)}
+      ${kpi('frozen', 'Thresholds & weights', 'not changed after these items were added')}
+    </div>` : ''}
+    <div class="note" style="margin-bottom:20px"><b>Positive class = fraud.</b> A return is "flagged" when it is not auto-accepted (human review, reject${r.retakes?.count ? `, or one of the ${r.retakes.count} retake requests` : ''}). F0.5 weights precision twice as much as recall, because wrongly blocking a genuine customer costs trust. The 95% intervals show how much a small test set can say: a perfect score on a few dozen pairs is still compatible with a noticeably lower true rate.</div>
+
+    <div class="result-grid">
+      <div class="card"><div class="card-title">Ablation · what each stage adds (F0.5)</div><div class="bars">
+        ${r.ablations.map(x => `<div class="bar-row"><span>${esc(x.name)}<div class="dim" style="font-size:12px">${esc(x.detail)}</div></span>
+          <div class="track"><div class="fill" style="width:${x.f0_5 * 100}%"></div></div><b class="mono">${x.f0_5.toFixed(3)}</b></div>`).join('')}
+        </div>
+        <table class="t" style="margin-top:12px"><tr><th>System</th><th>Precision</th><th>Recall</th><th>LLM calls</th></tr>
+        ${r.ablations.map(x => `<tr><td>${esc(x.name)}</td><td class="mono">${pct(x.precision)}</td><td class="mono">${pct(x.recall)}</td><td class="mono">${x.llm_calls_per_return ?? '—'}</td></tr>`).join('')}</table>
+      </div>
+      <div class="card"><div class="card-title">Confusion matrix · full pipeline</div>
+        <div class="confusion"><div></div><div class="h">Accept</div><div class="h">Human review</div><div class="h">Reject</div><div class="h">Retake</div>
+          <div class="h">Genuine (${r.dataset.genuine})</div>${DECISIONS.map(d => cell('genuine', d)).join('')}
+          <div class="h">Fraud (${r.dataset.fraud})</div>${DECISIONS.map(d => cell('fraud', d)).join('')}
+        </div>
+        <table class="t" style="margin-top:16px"><tr><th>Pair type</th><th>Accept</th><th>Review</th><th>Reject</th><th>Retake</th></tr>
+        ${Object.entries(r.by_pair_type).map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, ' '))}</td>${DECISIONS.map(d => `<td class="mono">${v[d] || 0}</td>`).join('')}</tr>`).join('')}</table>
+      </div>
+    </div>
+
+    ${sp ? robustness(s, kpi) : ''}
+
+    <div class="section-head" style="margin:28px 0 16px"><span class="eyebrow">Agentic metrics</span></div>
+    <div class="kpis">
+      ${kpi(a.llm_calls_per_return, 'LLM calls per return', `v1 made up to ${a.v1_llm_calls_per_return_upper_bound}`, true)}
+      ${kpi(a.decided_without_llm_pct + '%', 'Decided with no LLM call')}
+      ${kpi(a.schema_valid_first_try_pct + '%', 'Valid structured output, 1st try', `${a.total_retries} retries`)}
+      ${kpi(`${a.identity_agent_accuracy.correct}/${a.identity_agent_accuracy.runs}`, 'Identity agent correct')}
+      ${kpi(`${a.inspector_accuracy.correct}/${a.inspector_accuracy.runs}`, 'Visual inspector correct')}
+    </div>
+    <div class="result-grid">
+      <div class="card"><div class="card-title">Routes through the graph</div><div class="bars">
+        ${Object.entries(a.routes).map(([k, v]) => `<div class="bar-row"><span class="mono" style="font-size:12.5px">${esc(k)}</span><div class="track"><div class="fill" style="width:${v / maxRoute * 100}%"></div></div><b class="mono">${v}</b></div>`).join('')}
+      </div></div>
+      <div class="card"><div class="card-title">Cost &amp; latency</div><dl class="kv">
+        <dt>Tokens / return</dt><dd class="mono">${a.tokens_per_return}</dd>
+        <dt>Cost / 1,000 returns</dt><dd class="mono">${a.est_cost_usd_per_1000_returns != null ? '$' + a.est_cost_usd_per_1000_returns : 'n/a'} <span class="dim">(Gemini list price)</span></dd>
+        <dt>Latency / return</dt><dd class="mono">mean ${a.latency_s_per_return.mean}s · max ${a.latency_s_per_return.p_max}s</dd>
+        ${Object.entries(a.agents).map(([k, v]) => `<dt>${esc(k.replace(/_/g, ' '))}</dt><dd class="mono">${v.calls} calls · ${v.mean_latency_s}s · ${v.mean_tokens} tok</dd>`).join('')}
+      </dl></div>
+    </div>
+
+    <div class="section-head" style="margin:28px 0 16px"><span class="eyebrow">Error analysis &amp; honest caveats</span></div>
+    <div class="card" style="margin-bottom:20px"><div class="card-title">Misclassified pairs (${misses.length})</div>
+      ${misses.length ? `<table class="t"><tr><th>Pair</th><th>Truth</th><th>Decision</th><th>Strongest evidence</th></tr>${misses.map(p => `<tr><td>${esc(p.delivery_item)} → ${esc(p.return_item)}<div class="dim" style="font-size:12px">${esc(p.pair_type.replace(/_/g, ' '))}</div></td>
+        <td>${p.is_fraud ? 'fraud' : 'genuine'}</td><td><span class="pill ${p.decision}">${VERDICT[p.decision]}</span></td>
+        <td style="font-size:13px">${p.evidence.slice().sort((x, y) => Math.abs(y.weight) - Math.abs(x.weight)).slice(0, 2).map(e => `${esc(e.finding)} (${e.weight > 0 ? '+' : ''}${e.weight.toFixed(1)})`).join('<br>')}</td></tr>`).join('')}</table>
+      <p class="muted" style="margin-top:12px;font-size:14px">Each row shows the two strongest pieces of evidence behind the wrong decision. Fixes suggested by these errors are
+        <b>not</b> applied before this run: they come from the same data, so they need new items to be validated honestly. Full per-pair log: <span class="code">results/eval_pairs.csv</span>.</p>`
+      : '<p class="muted">None.</p>'}
+    </div>
+    ${r.real_recapture ? `<div class="card" style="margin-bottom:20px"><div class="card-title">Real re-photographs vs simulated</div>
+      <table class="t"><tr><th>Genuine pairs</th><th>Pairs</th><th>Auto-accepted</th><th>Flagged</th></tr>
+      ${r.real_recapture.map(x => `<tr><td>${esc(x.kind)}</td><td class="mono">${x.pairs}</td><td class="mono">${x.accepted}</td><td class="mono">${x.flagged}</td></tr>`).join('')}</table>
+      <p class="muted" style="margin-top:10px;font-size:14px">Simulated re-captures re-use the delivery photo, so they are easy. Real ones are separate photo sessions (new place, angle and lighting) and are the honest test.</p></div>` : ''}
+    <div class="note"><b>Read these numbers with care.</b> ${esc(r.dataset.note)} ${r.dataset.pairs} pairs is small, and the thresholds and weights were chosen by looking at the first 6 items${r.held_out ? ' (the held-out items above were added only after that)' : ''}.
+      Reproduce with <span class="code">python scripts/evaluate.py</span>. Generated ${esc(r.generated_at)} with <span class="mono">${esc(r.model)}</span>.</div>`;
+}
+
+function robustness(s, kpi) {
+  const p = s.pooled, sum = s.summary;
+  const byLabel = {};
+  s.conditions.forEach(c => { (byLabel[c.label] = byLabel[c.label] || {})[c.level] = c; });
+  const lvl = c => c ? `<td class="mono ${c.fp >= c.genuine / 2 ? 'bad-t' : ''}">${c.fp}/${c.genuine}</td><td class="mono">${pct(c.precision)}</td>` : '<td>—</td><td>—</td>';
+  return `
+    <div class="section-head" style="margin:28px 0 16px"><span class="eyebrow">Robustness · precision under bad photos</span></div>
+    <div class="kpis kpis-3">
+      ${kpi(pct(p.precision), 'Pooled precision', `${num(p.tp)} of ${num(p.flags)} flags were fraud · 95% interval ${pct(p.precision_ci[0])}–${pct(p.precision_ci[1])}`, true)}
+      ${kpi(pct(p.recall), 'Recall', `every fraud flagged in all ${p.conditions} conditions`)}
+      ${kpi(`${sum.genuine_flagged_by_local_stage}/${sum.genuine_returns_tested}`, 'Genuine returns flagged', `${sum.hard_false_rejections} hard rejections · ${sum.sent_to_gemini} sent to Gemini · ${sum.retakes} retakes`)}
+    </div>
+    <div class="card" style="margin-bottom:20px"><div class="card-title">Each return photo distorted ${p.conditions / 2} ways at two strengths (${num(p.pairs)} pairs)</div>
+      <table class="t"><tr><th>Condition</th><th>Mild · genuine flagged</th><th>Precision</th><th>Strong · genuine flagged</th><th>Precision</th></tr>
+      ${Object.entries(byLabel).map(([k, v]) => `<tr><td>${esc(k)}</td>${lvl(v.mild)}${lvl(v.strong)}</tr>`).join('')}</table>
+      <p class="muted" style="margin-top:12px;font-size:14px">Only the local stage (DINOv2 + colour) was run, so a genuine return that would be sent to Gemini counts as a false flag here. That makes these figures a worst case.
+        The weak spots are strong warm or cool light, very heavy JPEG compression and photos taken from far away. Colour-cast correction and a compression quality gate are the planned fixes.
+        Precision also depends on how common fraud is: this test has 7 fraud pairs per genuine one, while a real store might see around 15% fraud, which would give a much lower precision for the local stage alone.
+        Reproduce with <span class="code">python scripts/stress_test_precision.py</span>.</p>
+    </div>`;
+}
+
+/* ── hero animation ──────────────────────────────────────────────────── */
+const scene = (() => {
+  const el = $('#scene');
+  if (!el) return { setVisible() {} };
+  const steps = [
+    { t: 700, cap: 'A delivery agent brings a new speaker to the customer.', day: 'Day 0 · Delivery' },
+    { t: 1900, cap: 'At the door, before handing it over…' },
+    { t: 3400, cap: 'the agent photographs it in ReturnGuard: 3 views, label read, fingerprint saved.' },
+    { t: 2400, cap: 'The customer receives the blue speaker.' },
+    { t: 2600, cap: 'The customer asks for a return and hands back… a speaker.', day: 'Day 5 · Return pickup', fade: true },
+    { t: 3600, cap: 'The agent scans it: same model, but the colour is off and the batch label is gone.' },
+    { t: 4400, cap: 'Fraud caught at the doorstep. The refund is held and the seller gets the evidence.' },
+  ];
+  let i = 0, timer = null, playing = !REDUCED_MOTION, visible = true;
+  const dots = $('#scene-dots');
+  dots.innerHTML = steps.map((_, k) => `<button aria-label="Show step ${k + 1}"></button>`).join('');
+
+  function show(n) {
+    i = n;
+    el.dataset.step = n;
+    $('#scene-agent').classList.toggle('walking', n <= 1);
+    $('#scene-caption').textContent = steps[n].cap;
+    const day = steps.slice(0, n + 1).reverse().find(s => s.day);
+    $('#scene-day').textContent = day.day;
+    $$('button', dots).forEach((b, k) => b.classList.toggle('on', k === n));
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (playing && visible && !document.hidden) timer = setTimeout(next, steps[i].t);
+  }
+  function next() {
+    const n = (i + 1) % steps.length;
+    if (steps[n].fade) {
+      el.classList.add('transition');
+      timer = setTimeout(() => { show(n); el.classList.remove('transition'); schedule(); }, 1400);
+    } else {
+      show(n);
+      schedule();
+    }
+  }
+  $$('button', dots).forEach((b, k) => b.addEventListener('click', () => { show(k); schedule(); }));
+  $('#scene-toggle').addEventListener('click', () => {
+    playing = !playing;
+    $('#scene-toggle').textContent = playing ? 'Pause' : 'Play';
+    schedule();
+  });
+  document.addEventListener('visibilitychange', schedule);
+  show(REDUCED_MOTION ? 6 : 0);
+  if (REDUCED_MOTION) $('#scene-toggle').textContent = 'Play';
+  schedule();
+  return { setVisible(v) { visible = v; schedule(); } };
+})();
+
+/* ── init ────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-    initNavigation();
-    initUploadZones();
-    initDeliveryForm();
-    initReturnForm();
-    initLookup();
-    initSpline();
-    loadOrders();
+  initTheme();
+  initUploads();
+  initSamples();
+  initDelivery();
+  initReturn();
+  initAccount();
+  refreshMe();
+  $('#menu-btn').addEventListener('click', () => $('#mobile-nav').classList.toggle('open'));
+  $('#dash-refresh').addEventListener('click', loadDashboard);
+  window.addEventListener('hashchange', route);
+  route();
+  loadHomeMetrics();
 });

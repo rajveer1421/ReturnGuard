@@ -1,0 +1,12 @@
+.git
+.github
+.cache
+.env
+data
+Dataset
+notebooks
+docs/design-notes
+tests
+__pycache__
+*.pyc
+INTERVIEW_PREP.md

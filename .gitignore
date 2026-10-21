@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Secrets (copy .env.example to .env)
+.env
+
+# Runtime data: orders database, uploaded and processed images
+data/
+*.db
+
+# Model / LLM / feature caches
+.cache/
+
+# Incomplete evaluation runs (an LLM outage stopped them before publishing)
+results/*.partial.json
+
+# Generated evaluation pairs (rebuild with: python scripts/build_dataset.py)
+Dataset/same/
+Dataset/different/
+
+# Private interview notes — never commit
+INTERVIEW_PREP.md
+UNDERSTAND_YOUR_PROJECT_FROM_SCRATCH.md
+PITCH.md
+
+# Not part of the submitted project (kept locally only)
+notebooks/
+docs/design-notes/
+docs/screenshots/evaluation.png
+
+# Editor, OS and tool clutter
+.vscode/
+.idea/
+.claude/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

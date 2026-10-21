@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8A8AA6"/>
+    </marker>
+    <marker id="arrow-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8E7DFF"/>
+    </marker>
+    <style>
+      .bg { fill: #0B0B12; }
+      .lane { fill: #11111B; stroke: #22223A; }
+      .lane-t { fill: #8E7DFF; font: 600 12px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .12em; }
+      .box { fill: #161624; stroke-width: 1.6; }
+      .local { stroke: #4FE3C1; } .llm { stroke: #8E7DFF; fill: #1B1830; } .store { stroke: #FFC145; } .io { stroke: #55556E; }
+      .dec { stroke: #EDEDF5; fill: #1C1C2B; }
+      .t { fill: #EDEDF5; font-size: 14px; font-weight: 600; }
+      .s { fill: #A6A6BD; font-size: 11.5px; }
+      .tag { font: 600 9.5px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .06em; }
+      .edge { fill: none; stroke: #8A8AA6; stroke-width: 1.6; marker-end: url(#arrow); }
+      .edge-v { fill: none; stroke: #8E7DFF; stroke-width: 1.6; stroke-dasharray: 5 4; marker-end: url(#arrow-v); }
+      .lbl { fill: #A6A6BD; font-size: 11px; }
+      .lbl-b { fill: #4FE3C1; font: 600 11px 'JetBrains Mono', ui-monospace, monospace; }
+      .pill-t { font: 700 11px 'JetBrains Mono', ui-monospace, monospace; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="800" rx="18"/>
+  <text x="30" y="40" fill="#EDEDF5" font-size="20" font-weight="700">ReturnGuard architecture</text>
+  <text x="30" y="60" class="s">Cheap evidence first: every LLM agent sits behind a free local check.</text>
+
+  <!-- legend -->
+  <g transform="translate(700 28)">
+    <rect x="0" y="0" width="14" height="14" rx="4" fill="#161624" stroke="#4FE3C1" stroke-width="1.6"/><text x="20" y="11" class="s">Local · free</text>
+    <rect x="104" y="0" width="14" height="14" rx="4" fill="#1B1830" stroke="#8E7DFF" stroke-width="1.6"/><text x="124" y="11" class="s">Gemini agent</text>
+    <rect x="220" y="0" width="14" height="14" rx="4" fill="#161624" stroke="#FFC145" stroke-width="1.6"/><text x="240" y="11" class="s">Storage</text>
+    <rect x="306" y="0" width="14" height="14" rx="4" fill="#1C1C2B" stroke="#EDEDF5" stroke-width="1.6"/><text x="326" y="11" class="s">Decision</text>
+    <line x1="0" y1="32" x2="26" y2="32" stroke="#8E7DFF" stroke-width="1.6" stroke-dasharray="5 4"/><text x="34" y="36" class="s">uses the delivery fingerprint</text>
+  </g>
+
+  <!-- ═══ Lane A: delivery ═══ -->
+  <rect class="lane" x="16" y="80" width="1168" height="140" rx="14"/>
+  <text x="30" y="102" class="lane-t">DELIVERY · FINGERPRINT ONCE, AT HANDOVER</text>
+
+  <rect class="box io" x="30" y="116" width="140" height="84" rx="12"/>
+  <text x="44" y="146" class="t">Customer sign-in</text>
+  <text x="44" y="166" class="s">email + phone →</text>
+  <text x="44" y="181" class="s">customer ID</text>
+
+  <rect class="box io" x="192" y="116" width="140" height="84" rx="12"/>
+  <text x="206" y="146" class="t">3 photos</text>
+  <text x="206" y="166" class="s">front · back · side,</text>
+  <text x="206" y="181" class="s">by the delivery agent</text>
+
+  <rect class="box local" x="354" y="116" width="176" height="84" rx="12"/>
+  <text x="368" y="146" class="t">Cut-out + quality</text>
+  <text x="368" y="166" class="s">rembg U²-Net · blur /</text>
+  <text x="368" y="181" class="s">framing check → retake</text>
+
+  <rect class="box local" x="552" y="116" width="186" height="84" rx="12"/>
+  <text x="566" y="146" class="t">Visual features</text>
+  <text x="566" y="166" class="s">object-only DINOv2</text>
+  <text x="566" y="181" class="s">+ median Lab colour</text>
+
+  <rect class="box llm" x="760" y="116" width="206" height="84" rx="12"/>
+  <text x="774" y="146" class="t">Identity agent</text>
+  <text x="916" y="134" class="tag" fill="#8E7DFF">GEMINI</text>
+  <text x="774" y="166" class="s">reads serial, batch, model;</text>
+  <text x="774" y="181" class="s">marks, accessories, tags</text>
+
+  <rect class="box store" x="988" y="116" width="176" height="84" rx="12"/>
+  <text x="1002" y="146" class="t">Order record</text>
+  <text x="1002" y="166" class="s">SQLite · customer ID +</text>
+  <text x="1002" y="181" class="s">features + fingerprint</text>
+
+  <path class="edge" d="M170 158 H188"/>
+  <path class="edge" d="M332 158 H350"/>
+  <path class="edge" d="M530 158 H548"/>
+  <path class="edge" d="M738 158 H756"/>
+  <path class="edge" d="M966 158 H984"/>
+
+  <!-- ═══ Lane B: return graph ═══ -->
+  <rect class="lane" x="16" y="240" width="1168" height="544" rx="14"/>
+  <text x="30" y="262" class="lane-t">RETURN · LANGGRAPH STATE MACHINE</text>
+
+  <rect class="box io" x="30" y="396" width="170" height="78" rx="12"/>
+  <text x="46" y="424" class="t">Return request</text>
+  <text x="46" y="444" class="s">signed-in customer ·</text>
+  <text x="46" y="459" class="s">order · reason · photos</text>
+
+  <rect class="box local" x="236" y="396" width="176" height="78" rx="12"/>
+  <text x="252" y="424" class="t">Intake</text>
+  <text x="252" y="444" class="s">cut-out · quality gate</text>
+  <text x="252" y="459" class="s">· features</text>
+
+  <rect class="box io" x="236" y="540" width="176" height="56" rx="12"/>
+  <text x="252" y="565" class="t">Retake required</text>
+  <text x="252" y="583" class="s">photo blurry or empty</text>
+
+  <!-- parallel nodes -->
+  <rect class="box local" x="460" y="296" width="206" height="70" rx="12"/>
+  <text x="476" y="323" class="t">Policy agent</text>
+  <text x="476" y="343" class="s">return window · category rules</text>
+  <text x="476" y="357" class="s">electronics → functional test</text>
+
+  <rect class="box local" x="460" y="400" width="206" height="70" rx="12"/>
+  <text x="476" y="427" class="t">Customer history agent</text>
+  <text x="476" y="447" class="s">this customer ID's flagged</text>
+  <text x="476" y="461" class="s">returns → stricter cut-off</text>
+
+  <rect class="box local" x="460" y="504" width="206" height="70" rx="12"/>
+  <text x="476" y="531" class="t">Visual screen</text>
+  <text x="476" y="551" class="s">shape (DINOv2) + colour ΔE</text>
+  <text x="476" y="565" class="s">vs stored delivery features</text>
+
+  <path class="edge" d="M200 435 H232"/>
+  <path class="edge" d="M324 474 V536"/>
+  <text x="332" y="510" class="lbl">unusable</text>
+  <path d="M412 435 H434 M434 331 V539" fill="none" stroke="#8A8AA6" stroke-width="1.6"/>
+  <path class="edge" d="M434 331 H456"/>
+  <path class="edge" d="M434 435 H456"/>
+  <path class="edge" d="M434 539 H456"/>
+  <text x="352" y="290" class="lbl-b">parallel fan-out</text>
+  <path d="M400 294 Q430 300 436 322" fill="none" stroke="#4FE3C1" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- triage -->
+  <path d="M666 331 H684 V435 M666 539 H684 V435" fill="none" stroke="#8A8AA6" stroke-width="1.6"/>
+  <path class="edge" d="M666 435 H694"/>
+  <polygon points="750,379 806,435 750,491 694,435" fill="#161624" stroke="#4FE3C1" stroke-width="1.6"/>
+  <text x="750" y="431" class="t" text-anchor="middle" font-size="13">Triage</text>
+  <text x="750" y="447" class="s" text-anchor="middle">router</text>
+
+  <!-- LLM agents -->
+  <rect class="box llm" x="856" y="290" width="210" height="84" rx="12"/>
+  <text x="872" y="318" class="t">Identity agent</text>
+  <text x="1016" y="306" class="tag" fill="#8E7DFF">GEMINI</text>
+  <text x="872" y="338" class="s">blind read: told where the label</text>
+  <text x="872" y="353" class="s">was, not what it said; fuzzy</text>
+  <text x="872" y="367" class="s">match in code</text>
+
+  <rect class="box llm" x="856" y="420" width="210" height="84" rx="12"/>
+  <text x="872" y="448" class="t">Visual inspector</text>
+  <text x="1016" y="436" class="tag" fill="#8E7DFF">GEMINI</text>
+  <text x="872" y="468" class="s">all six photos · independent of</text>
+  <text x="872" y="483" class="s">scores · wear, tags, damage,</text>
+  <text x="872" y="497" class="s">reason consistency</text>
+
+  <path class="edge" d="M806 435 H826 V332 H852"/>
+  <text x="770" y="342" class="lbl">label on</text>
+  <text x="770" y="355" class="lbl">record</text>
+  <path class="edge" d="M826 435 V462 H852"/>
+  <text x="772" y="478" class="lbl">ambiguous</text>
+    <path class="edge" d="M961 374 V416"/>
+  <text x="968" y="400" class="lbl">conflict / unreadable</text>
+
+  <!-- delivery fingerprint feeds -->
+  <path class="edge-v" d="M1070 200 V230 H1000 V286"/>
+  <text x="1010" y="252" class="lbl" fill="#8E7DFF">label locations from delivery</text>
+
+  <!-- decision -->
+  <rect class="box dec" x="856" y="560" width="210" height="88" rx="12"/>
+  <text x="872" y="588" class="t">Decision agent</text>
+  <text x="872" y="608" class="s">evidence-weighted risk 0–100</text>
+  <text x="872" y="623" class="s">+ rules: damage claims vs photos,</text>
+  <text x="872" y="638" class="s">fail-safe when an agent is down</text>
+
+  <path class="edge" d="M961 504 V556"/>
+  <path class="edge" d="M750 491 V604 H852"/>
+  <text x="560" y="598" class="lbl-b">fast reject / fast accept</text>
+  <text x="560" y="614" class="lbl">0 LLM calls (79% of eval returns)</text>
+  <path class="edge" d="M1066 340 H1090 V600 H1070"/>
+  <text x="1096" y="560" class="lbl">label</text>
+  <text x="1096" y="573" class="lbl">+ looks</text>
+  <text x="1096" y="586" class="lbl">agree</text>
+  <path class="edge" d="M324 596 V720 H852"/>
+
+  <!-- verdicts -->
+  <rect x="856" y="672" width="88" height="30" rx="8" fill="rgba(61,220,151,.14)" stroke="#3DDC97"/>
+  <text x="900" y="691" class="pill-t" fill="#3DDC97" text-anchor="middle">ACCEPT</text>
+  <rect x="952" y="672" width="114" height="30" rx="8" fill="rgba(255,193,69,.14)" stroke="#FFC145"/>
+  <text x="1009" y="691" class="pill-t" fill="#FFC145" text-anchor="middle">HUMAN REVIEW</text>
+  <rect x="1074" y="672" width="88" height="30" rx="8" fill="rgba(255,107,107,.14)" stroke="#FF6B6B"/>
+  <text x="1118" y="691" class="pill-t" fill="#FF6B6B" text-anchor="middle">REJECT</text>
+  <path class="edge" d="M961 648 V668"/>
+
+  <rect class="box store" x="856" y="716" width="306" height="52" rx="12"/>
+  <text x="872" y="738" class="t">Audit log + evidence report</text>
+  <text x="872" y="756" class="s">one row per stage · seller-ready PDF report</text>
+
+  <!-- footnote -->
+  <text x="30" y="760" class="s">Gemini 3.8 Flash agents return schema-validated JSON (timeouts, retries with backoff, no retry on auth errors).</text>
+  <text x="30" y="776" class="s">A failed agent sends the return to a human; reviewers can ask for a Gemini second opinion on demand.</text>
+</svg>
